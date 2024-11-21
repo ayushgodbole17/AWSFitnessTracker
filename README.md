@@ -12,8 +12,8 @@ Technologies Used:
 - React, HTML, CSS, JS for front-end
 - AWS Lambda (with Node.js) and API Gateway for API calls
 - S3 for storing build files
-- Cloudfront for Hosting
-- Cloudwatch for monitoring
+- CloudFront for Hosting
+- CloudWatch for monitoring
 - DynamoDB for workout storage
 - Cognito for User Management
 - OpenAI GPT3.5 API for chatbot
