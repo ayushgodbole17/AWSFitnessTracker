@@ -1,4 +1,4 @@
-A Fitness Tracker Website built to learn and use Amazon Web Servces and its various offerings.  
+A Fitness Tracker Website built to learn and use Amazon Web Services and its various offerings.  
   
 Functionalities (21/11):  
 - Account creation with email
