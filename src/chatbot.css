@@ -1,0 +1,324 @@
+/* General Container Styling */
+.container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-height: 100vh;
+  }
+  
+  /* Header and Sign-Out Button Styling */
+  .header-container {
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    margin-bottom: 20px;
+  }
+  
+  .page-title {
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: center;
+    flex-grow: 1;
+  }
+  
+  .btn-danger {
+    padding: 10px 15px;
+    background-color: #e60000;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 1rem;
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+  }
+  
+  .btn-danger:hover {
+    background-color: #b30000;
+  }
+  
+  /* Row Styling */
+  .row {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  /* Card Styling for Both Cards */
+  .card {
+    flex: 1;
+    min-width: 48%;
+    max-width: 48%;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    height: 600px; /* Set fixed height for both cards to ensure consistency */
+    overflow: hidden;
+  }
+  
+  /* Scrollable Card Styling for Right Card */
+  .scroll-card {
+    overflow-y: auto;
+    height: 100%;
+  }
+  
+  .scroll-card::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .scroll-card::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+  }
+  
+  .scroll-card::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+  }
+  
+  /* Card Header Styling */
+  .card-header {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  
+  /* Form Input Styling */
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  /* Button Styling for Consistency */
+  button {
+    padding: 10px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  /* Specific Button Styling */
+  .add-btn,
+  .save-btn {
+    background-color: #4a90e2;
+    color: white;
+    margin-top: 10px;
+    margin-right: 10px;
+    display: inline-block;
+    text-align: center;
+    width: 48%;
+  }
+  
+  .add-btn:hover,
+  .save-btn:hover {
+    background-color: #357ab8;
+  }
+  
+  .remove-btn {
+    background-color: #e60000;
+    color: white;
+    width: 100%;
+    margin-bottom: 15px;
+  }
+  
+  .remove-btn:hover {
+    background-color: #b30000;
+  }
+  
+  /* Ensure Flexibility for Buttons to Be Inline */
+  .button-group {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .row {
+      flex-direction: column;
+      gap: 20px;
+    }
+  
+    .card {
+      min-width: 100%;
+      margin-bottom: 20px;
+      height: auto;
+    }
+  
+    .scroll-card {
+      height: auto;
+    }
+  
+    .header-container {
+      flex-direction: column;
+      text-align: center;
+      gap: 10px;
+    }
+  
+    .btn-danger {
+      position: static;
+      margin-top: 10px;
+    }
+  }
+  
+  /* Workout List Styling */
+  .exercise-summary-list {
+    list-style-type: none;
+    padding-left: 0;
+    margin-top: 10px;
+  }
+  
+  .exercise-summary-item {
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: #444;
+  }
+  
+  .no-workouts {
+    font-size: 1rem;
+    color: #888;
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  /* Loading State Styling */
+  .loading {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #007bff;
+  }
+  
+  /* Chatbot Widget Styling (Facebook-style Chat) */
+  .chat-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 300px;
+    max-height: 500px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1000; /* Ensure the chat widget appears above other content */
+  }
+  
+  .chat-widget-closed {
+    background-color: #4a90e2;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .chat-widget-open {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .chat-header {
+    background-color: #4a90e2;
+    color: white;
+    padding: 10px;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .chat-header .close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+  
+  .chat-body {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+  }
+  
+  .chat-history {
+    max-height: 300px; /* Adjust as necessary */
+    overflow-y: auto;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 10px;
+  }
+  
+  .chat-input-container {
+    padding: 10px;
+    border-top: 1px solid #ddd;
+    display: flex;
+  }
+  
+  .chat-input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-right: 10px;
+  }
+  
+  .chat-send-btn {
+    padding: 10px;
+    background-color: #4a90e2;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .chat-send-btn:hover {
+    background-color: #357ab8;
+  }
+  
+  .chat-bubble {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 10px;
+  }
+  
+  .chat-bubble.user {
+    background-color: #4a90e2;
+    color: #fff;
+    text-align: right;
+  }
+  
+  .chat-bubble.bot {
+    background-color: #e0e0e0;
+    color: #333;
+  }
+  
