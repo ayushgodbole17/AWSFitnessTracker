@@ -22,3 +22,4 @@ To be Implemented:
 - Fine-tuning of chatbot
 - Option to delete and modify past workouts
 - Improve UI/UX
+- Workout History Analysis + Suggestions with ML
