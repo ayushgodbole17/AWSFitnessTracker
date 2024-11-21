@@ -26,3 +26,5 @@ To be Implemented:
 - Option to delete and modify past workouts
 - Improve UI/UX
 - Workout History Analysis + Suggestions with ML
+- Remove React app defaults
+- Host on custom domain with Route 53
