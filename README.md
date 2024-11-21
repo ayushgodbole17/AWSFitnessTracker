@@ -18,6 +18,7 @@ Technologies Used:
 
 
 To be Implemented:
+- Implementing creation of and logging in with username 
 - Bigger selection of exercises
 - Fine-tuning of chatbot
 - Option to delete and modify past workouts
