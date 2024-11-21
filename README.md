@@ -9,8 +9,8 @@ Functionalities (21/11):
   
   
 Technologies Used:  
-- React for front-end
-- AWS Lambda and API Gateway for API calls
+- React, HTML, CSS, JS for front-end
+- AWS Lambda (with Node.js) and API Gateway for API calls
 - Cloudfront for Hosting
 - DynamoDB for workout storage
 - Cognito for User Management
