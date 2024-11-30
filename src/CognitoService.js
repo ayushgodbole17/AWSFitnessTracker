@@ -6,10 +6,10 @@ import {
 } from "@aws-sdk/client-cognito-identity-provider";
 
 const client = new CognitoIdentityProviderClient({
-  region: "us-east-1", // Update with your AWS region if different
+  region: "us-east-1",
 });
 
-const CLIENT_ID = process.env.CLIENT_ID; // Replace with your Cognito App Client ID
+const CLIENT_ID = process.env.REACT_APP_CLIENT_ID; // Cognito App Client ID
 
 // Function to handle user sign-up
 export const signUp = async (email, password, name, gender, birthdate) => {
@@ -29,11 +29,12 @@ export const signUp = async (email, password, name, gender, birthdate) => {
     await client.send(command);
     return "Sign-up successful! Please check your email for the confirmation code.";
   } catch (error) {
+    console.error("Sign-Up Error:", JSON.stringify(error, null, 2));
     throw new Error(error.message || "Sign-up failed.");
   }
 };
 
-// Function to confirm user sign-up with the provided confirmation code
+// Function to confirm user sign-up
 export const confirmSignUp = async (email, confirmationCode) => {
   try {
     const command = new ConfirmSignUpCommand({
@@ -45,6 +46,7 @@ export const confirmSignUp = async (email, confirmationCode) => {
     await client.send(command);
     return "Confirmation successful! You can now log in.";
   } catch (error) {
+    console.error("Confirmation Error:", JSON.stringify(error, null, 2));
     throw new Error(error.message || "Confirmation failed.");
   }
 };
@@ -52,6 +54,21 @@ export const confirmSignUp = async (email, confirmationCode) => {
 // Function to handle user sign-in
 export const signIn = async (email, password) => {
   try {
+    if (!email || !password) {
+      throw new Error("Email and password are required.");
+    }
+
+    const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!validateEmail(email)) {
+      throw new Error("Invalid email format.");
+    }
+
+    console.log("Sign-In Parameters:", { email, CLIENT_ID });
+
+    if (!CLIENT_ID) {
+      throw new Error("CLIENT_ID is missing or undefined. Check your .env file.");
+    }
+
     const command = new InitiateAuthCommand({
       ClientId: CLIENT_ID,
       AuthFlow: "USER_PASSWORD_AUTH",
@@ -62,22 +79,25 @@ export const signIn = async (email, password) => {
     });
 
     const response = await client.send(command);
-    localStorage.setItem("email", email); // Save email for session management
-    localStorage.setItem("accessToken", response.AuthenticationResult.AccessToken); // Save access token for authentication
-    localStorage.setItem("isAuthenticated", "true"); // Ensure authentication state is saved
+    localStorage.setItem("email", email);
+    localStorage.setItem("accessToken", response.AuthenticationResult.AccessToken);
+    localStorage.setItem("isAuthenticated", "true");
 
     return "Sign-in successful!";
   } catch (error) {
+    console.error("Sign-In Error:", JSON.stringify(error, null, 2));
     throw new Error(error.message || "Sign-in failed.");
   }
 };
 
-// Function to get the current user based on local storage data
+
+// Get the current user
 export const getCurrentUser = () => {
   return localStorage.getItem("email") || null;
 };
 
+// Log out the current user
 export const signOut = () => {
   localStorage.clear();
-  localStorage.setItem("isAuthenticated", "false"); // Explicitly set isAuthenticated to false
+  localStorage.setItem("isAuthenticated", "false");
 };

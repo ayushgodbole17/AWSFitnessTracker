@@ -19,10 +19,26 @@ const LoginPage = ({ onLogin }) => {
 
   const navigate = useNavigate();
 
+  // Input change handler
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Input validation functions
+  const validateEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const validatePassword = (password) =>
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[@$!%*?&#]/.test(password);
+
+  const validateBirthdate = (birthdate) =>
+    /^\d{4}-\d{2}-\d{2}$/.test(birthdate);
+
+  // Sign-up handler
   const handleSignUp = async () => {
     const { email, password, name, gender, birthdate } = formData;
 
@@ -31,8 +47,26 @@ const LoginPage = ({ onLogin }) => {
       return;
     }
 
+    if (!validateEmail(email)) {
+      toast.error("Invalid email format.");
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      toast.error(
+        "Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character."
+      );
+      return;
+    }
+
+    if (!validateBirthdate(birthdate)) {
+      toast.error("Birthdate must be in YYYY-MM-DD format.");
+      return;
+    }
+
     try {
       await signUp(email, password, name, gender, birthdate);
+      localStorage.setItem("pendingEmail", email); // Save email for confirmation
       toast.success("Sign-up successful! Check your email for the confirmation code.");
       setIsSigningUp(false);
       setIsConfirming(true);
@@ -41,6 +75,7 @@ const LoginPage = ({ onLogin }) => {
     }
   };
 
+  // Confirmation handler
   const handleConfirmation = async () => {
     const { email, confirmationCode } = formData;
 
@@ -58,6 +93,7 @@ const LoginPage = ({ onLogin }) => {
     }
   };
 
+  // Sign-in handler
   const handleSignIn = async () => {
     const { email, password } = formData;
 
@@ -82,6 +118,7 @@ const LoginPage = ({ onLogin }) => {
     }
   };
 
+  // Submit handler
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isSigningUp) {

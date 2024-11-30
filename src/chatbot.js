@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import "./chatbot.css"; // Assuming the styles are now in `chatbot.css`
+import keywords from './keywords';
+import "./chatbot.css";
 
 function Chatbot() {
   const [userInput, setUserInput] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
-  const [isOpen, setIsOpen] = useState(false); // Track the state of the chat widget
-  const [loading, setLoading] = useState(false); // Track loading state for "Bot is typing..."
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Toggle chat visibility
   const toggleChat = () => {
     setIsOpen(!isOpen);
   };
@@ -19,12 +19,28 @@ function Chatbot() {
   const handleSend = async () => {
     if (!userInput.trim()) return;
 
-    // Update chat history with user's input
     setChatHistory((prev) => [...prev, { sender: 'user', message: userInput }]);
-    setLoading(true); // Show "Bot is typing..." when waiting for a response
+
+    // Check if the input is workout-related
+    const isWorkoutRelated = keywords.some((keyword) =>
+      userInput.toLowerCase().includes(keyword.toLowerCase())
+    );
+
+    if (!isWorkoutRelated) {
+      setChatHistory((prev) => [
+        ...prev,
+        {
+          sender: 'bot',
+          message: "I can only help with workout-related questions. Please ask about fitness or exercises!",
+        },
+      ]);
+      return;
+    }
+
+    setLoading(true);
 
     try {
-      const response = await fetch(process.env.CHATBOT_API_URL, {
+      const response = await fetch(process.env.REACT_APP_CHATBOT_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -34,20 +50,16 @@ function Chatbot() {
 
       const data = await response.json();
 
-      // Update chat history with bot's response
       setChatHistory((prev) => [
         ...prev,
-        { sender: 'user', message: userInput },
         { sender: 'bot', message: data.response },
       ]);
     } catch (error) {
       console.error('Error communicating with chatbot:', error);
     } finally {
-      setLoading(false); // Hide "Bot is typing..." after response
+      setLoading(false);
+      setUserInput('');
     }
-
-    // Clear the input
-    setUserInput('');
   };
 
   return (

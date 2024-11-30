@@ -6,6 +6,7 @@ import "./uploadWorkout.css";
 
 const UploadWorkout = ({ onWorkoutSave }) => {
   const [workoutName, setWorkoutName] = useState("");
+  const [workoutDate, setWorkoutDate] = useState(""); // New state for workout date
   const [exercises, setExercises] = useState([]);
   const [currentExercise, setCurrentExercise] = useState({
     muscleGroup: "",
@@ -15,12 +16,64 @@ const UploadWorkout = ({ onWorkoutSave }) => {
     weight: "",
   });
 
-  const muscleGroups = ["Chest", "Legs", "Back", "Arms"];
+  const muscleGroups = ["Chest", "Legs", "Back", "Shoulders", "Arms"];
   const exercisesList = {
-    Chest: ["Bench Press", "Chest Fly"],
-    Legs: ["Leg Press", "Squat"],
-    Back: ["Pull Up", "Deadlift"],
-    Arms: ["Bicep Curl", "Tricep Extension"],
+    Chest: [
+      "Dumbbell Bench Press",
+      "Dumbbell Incline Press",
+      "Barbell Bench Press",
+      "Barbell Incline Press",
+      "Chest Press Machine",
+      "Cable Crossovers",
+      "Incline Cable Crossovers",
+      "Decline Cable Crossovers",
+      "Dips",
+      "Assisted Dips",
+    ],
+    Legs: [
+      "Leg Extensions",
+      "Hamstring Curls",
+      "Calf Raises",
+      "Glute Machine",
+      "Hip Thrusts",
+      "Abductor Machine",
+      "Adductor Machine",
+      "Leg Press",
+      "Squats",
+      "Deadlifts",
+    ],
+    Back: [
+      "Pull Ups",
+      "Assisted Pull Ups",
+      "Chin Ups",
+      "Assisted Chin-Ups",
+      "Dumbbell Rows",
+      "Barbell Rows",
+      "Cable Rows",
+      "Lat Pulldown",
+      "High Row Machine",
+      "Low Row Machine",
+      "Back Extensions Bench",
+      "Back Extensions Machine",
+    ],
+    Arms: [
+      "Tricep Press Machine",
+      "Tricep Extensions",
+      "Dumbbell Kickbacks",
+      "Bicep Curls Dumbbell",
+      "Bicep Curls Barbell",
+      "Bicep Curls Cable",
+      "Reverse Curls Cable",
+      "Reverse Curls Dumbbell",
+      "Reverse Curls Barbell",
+    ],
+    Shoulders: [
+      "Shoulder Press Machine",
+      "Front Raises",
+      "Lateral Raises",
+      "Face Pulls",
+      "Rotator Cuff Band",
+    ],
   };
 
   const handleInputChange = (field, value) => {
@@ -31,7 +84,6 @@ const UploadWorkout = ({ onWorkoutSave }) => {
   };
 
   const addExercise = () => {
-    // Validate input before adding
     if (
       !currentExercise.muscleGroup ||
       !currentExercise.exercise ||
@@ -43,9 +95,7 @@ const UploadWorkout = ({ onWorkoutSave }) => {
       return;
     }
 
-    // Add the exercise to the list
     setExercises([...exercises, { ...currentExercise }]);
-    // Clear the form for the next entry
     setCurrentExercise({
       muscleGroup: "",
       exercise: "",
@@ -64,8 +114,8 @@ const UploadWorkout = ({ onWorkoutSave }) => {
       return;
     }
 
-    if (!workoutName) {
-      toast.error("Please provide a workout name.");
+    if (!workoutDate) {
+      toast.error("Please provide a workout date.");
       return;
     }
 
@@ -76,7 +126,8 @@ const UploadWorkout = ({ onWorkoutSave }) => {
 
     const workoutData = {
       userID,
-      workoutName,
+      workoutName: workoutName || "Untitled Workout", // Default to "Untitled Workout" if no name provided
+      workoutDate,
       exercises: exercises.map((exercise) => ({
         muscleGroup: exercise.muscleGroup,
         exercise: exercise.exercise,
@@ -92,15 +143,16 @@ const UploadWorkout = ({ onWorkoutSave }) => {
         workoutData,
         {
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
       toast.success("Workout saved successfully!");
       setWorkoutName("");
+      setWorkoutDate("");
       setExercises([]);
       if (onWorkoutSave) {
-        onWorkoutSave(); // Trigger re-fetch of workouts
+        onWorkoutSave();
       }
     } catch (error) {
       console.error("Error saving workout:", error);
@@ -115,10 +167,21 @@ const UploadWorkout = ({ onWorkoutSave }) => {
         <div className="workout-name-container">
           <input
             type="text"
-            placeholder="Workout Name"
+            placeholder="Workout Name (Optional)"
             value={workoutName}
             onChange={(e) => setWorkoutName(e.target.value)}
             className="input-workout-name"
+          />
+        </div>
+        <div className="workout-date-container">
+          <label htmlFor="workout-date">Workout Date:</label>
+          <input
+            type="date"
+            id="workout-date"
+            value={workoutDate}
+            onChange={(e) => setWorkoutDate(e.target.value)}
+            className="input-workout-date"
+            required
           />
         </div>
         <div className="exercise-card">
@@ -190,20 +253,18 @@ const UploadWorkout = ({ onWorkoutSave }) => {
       {/* Current Workout Summary */}
       <div className="current-workout-summary">
         <h4>Current Workout</h4>
-        {workoutName && (
-          <div>
-            <h5>{workoutName}</h5>
-            {exercises.length > 0 && (
-              <ul className="exercise-summary-list">
-                {exercises.map((exercise, index) => (
-                  <li key={index} className="exercise-summary-item">
-                    <strong>{exercise.exercise}</strong> - {exercise.sets} sets of {exercise.reps} reps at{" "}
-                    {exercise.weight} kg ({exercise.muscleGroup})
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+        {workoutName && <h5>{workoutName}</h5>}
+        {workoutDate && <p>Date: {workoutDate}</p>}
+        {exercises.length > 0 && (
+          <ul className="exercise-summary-list">
+            {exercises.map((exercise, index) => (
+              <li key={index} className="exercise-summary-item">
+                <strong>{exercise.exercise}</strong> - {exercise.sets} sets of{" "}
+                {exercise.reps} reps at {exercise.weight} kg (
+                {exercise.muscleGroup})
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </div>
