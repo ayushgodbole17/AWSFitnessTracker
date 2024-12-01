@@ -1,51 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import UploadWorkout from "./uploadWorkout";
 import GetWorkouts from "./getWorkouts";
-import Chatbot from "./chatbot"; // Import the chatbot component
-import axios from "axios";
-import "./HomePage.css";
-import "./chatbot.css"; // Import chatbot-specific styling
+import Chatbot from "./chatbot";
 import { toast } from "react-toastify";
+import "./HomePage.css";
+import "./chatbot.css";
 
 const HomePage = ({ onLogout }) => {
-  const [workouts, setWorkouts] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [editingWorkout, setEditingWorkout] = useState(null);
 
-  const fetchWorkouts = async () => {
-    const userID = localStorage.getItem("email");
-    if (!userID) {
-      toast.error("You are not authenticated. Please log in again.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        process.env.GET_WORKOUT_URL + `?email=${userID}`
-      );
-      // Sort workouts by date in descending order
-      const sortedWorkouts = response.data.sort(
-        (a, b) => new Date(b.date) - new Date(a.date)
-      );
-      setWorkouts(sortedWorkouts);
-    } catch (error) {
-      console.error("Error fetching workouts:", error);
-      toast.error("Failed to fetch workouts. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+  const handleWorkoutSave = () => {
+    console.log("Workout save triggered.");
+    setRefreshTrigger((prev) => prev + 1); // Trigger workout list refresh
+    setEditingWorkout(null); // Reset editing state
   };
 
-  useEffect(() => {
-    const userID = localStorage.getItem("email");
-    if (userID) {
-      fetchWorkouts();
-    } else {
-      // Redirect to login if the user is not authenticated
-      toast.error("You are not authenticated. Redirecting to login.");
-      onLogout(); // Trigger logout and redirect
-    }
-  }, []);
+  const handleEditWorkout = (workout) => {
+    console.log("Editing workout:", workout);
+    setEditingWorkout(workout); // Pass workout to editing mode
+    toast.info("Edit mode activated. Modify the workout in the form.");
+  };
 
   return (
     <div className="container">
@@ -55,14 +30,15 @@ const HomePage = ({ onLogout }) => {
       </button>
       <div className="row">
         <div className="card">
-          <UploadWorkout onWorkoutSave={fetchWorkouts} />
+          <UploadWorkout
+            onWorkoutSave={handleWorkoutSave}
+            editingWorkout={editingWorkout}
+          />
         </div>
         <div className="card scroll-card">
-          <GetWorkouts workouts={workouts} loading={loading} />
+          <GetWorkouts refreshTrigger={refreshTrigger} onEditWorkout={handleEditWorkout} />
         </div>
       </div>
-      
-      {/* Add the chatbot widget to the homepage */}
       <Chatbot />
     </div>
   );

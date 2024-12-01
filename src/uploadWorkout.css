@@ -3,6 +3,10 @@
 }
 
 .workout-form {
+  display: flex;
+  flex-wrap: wrap; /* Allow wrapping for responsive design */
+  justify-content: space-between;
+  align-items: flex-start;
   background: #f9f9f9;
   padding: 15px;
   border-radius: 10px;
@@ -10,10 +14,11 @@
   max-width: 100%;
 }
 
-.input-workout-name {
-  width: 100%;
+.input-workout-name,
+.input-workout-date {
+  flex: 1 1 48%; /* Take up 48% width with margin */
+  margin: 10px 1%;
   padding: 10px;
-  margin-bottom: 10px;
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -21,26 +26,27 @@
 
 .exercise-row {
   display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
   align-items: center;
   margin-bottom: 10px;
+  width: 100%;
 }
 
 .compact-select,
 .compact-input {
   padding: 5px;
-  margin-right: 10px;
   font-size: 14px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  min-width: 120px;
 }
 
 .compact-select {
-  max-width: 150px;
+  flex: 1 1 15%;
 }
 
 .compact-input {
-  max-width: 80px;
+  flex: 1 1 10%;
 }
 
 .compact-remove {
@@ -53,6 +59,7 @@
 }
 
 .button-group {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   margin-top: 10px;
@@ -60,12 +67,14 @@
 
 .add-btn,
 .save-btn {
+  flex: 1 1 48%;
   background: #007bff;
   color: white;
   border: none;
-  padding: 8px 12px;
+  padding: 10px 20px;
   cursor: pointer;
   border-radius: 5px;
+  text-align: center;
 }
 
 .add-btn:hover,
@@ -80,12 +89,8 @@
   padding: 15px;
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.exercise-summary-list {
-  list-style-type: none;
-  padding-left: 0;
-  margin-top: 10px;
+  max-height: 400px; /* Limit height */
+  overflow-y: auto;
 }
 
 .exercise-summary-item {
