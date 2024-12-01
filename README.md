@@ -5,7 +5,8 @@ Functionalities (21/11):
 - Sign-in and sign-out
 - Adding a workout to DB
 - View Past workouts
-- Chat with chatbot about workout tips  
+- Chat with chatbot about fitness and workouts, while filtering for topics relevant to fitness
+- Option to delete and modify past workouts
   
   
 Technologies Used:  
@@ -21,8 +22,6 @@ Technologies Used:
 
 To be Implemented:
 - Implementing creation of and logging in with username 
-- Option to delete and modify past workouts
 - Improve UI/UX
 - Workout History Analysis + Suggestions with ML
-- Remove React app defaults
 - Host on custom domain with Route 53
