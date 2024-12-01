@@ -6,7 +6,7 @@ import "./uploadWorkout.css";
 
 const UploadWorkout = ({ onWorkoutSave }) => {
   const [workoutName, setWorkoutName] = useState("");
-  const [workoutDate, setWorkoutDate] = useState(""); // New state for workout date
+  const [workoutDate, setWorkoutDate] = useState("");
   const [exercises, setExercises] = useState([]);
   const [currentExercise, setCurrentExercise] = useState({
     muscleGroup: "",
@@ -14,7 +14,10 @@ const UploadWorkout = ({ onWorkoutSave }) => {
     sets: "",
     reps: "",
     weight: "",
+    weightType: "kg",
+    isAssistance: false,
   });
+  const [editIndex, setEditIndex] = useState(null);
 
   const muscleGroups = ["Chest", "Legs", "Back", "Shoulders", "Arms"];
   const exercisesList = {
@@ -76,6 +79,8 @@ const UploadWorkout = ({ onWorkoutSave }) => {
     ],
   };
 
+  const weightTypes = ["kg", "machine"];
+
   const handleInputChange = (field, value) => {
     setCurrentExercise({
       ...currentExercise,
@@ -83,7 +88,7 @@ const UploadWorkout = ({ onWorkoutSave }) => {
     });
   };
 
-  const addExercise = () => {
+  const addOrUpdateExercise = () => {
     if (
       !currentExercise.muscleGroup ||
       !currentExercise.exercise ||
@@ -95,14 +100,37 @@ const UploadWorkout = ({ onWorkoutSave }) => {
       return;
     }
 
-    setExercises([...exercises, { ...currentExercise }]);
+    const newExercise = { ...currentExercise };
+
+    if (editIndex !== null) {
+      const updatedExercises = [...exercises];
+      updatedExercises[editIndex] = newExercise;
+      setExercises(updatedExercises);
+      setEditIndex(null);
+    } else {
+      setExercises([...exercises, newExercise]);
+    }
+
     setCurrentExercise({
       muscleGroup: "",
       exercise: "",
       sets: "",
       reps: "",
       weight: "",
+      weightType: "kg",
+      isAssistance: false,
     });
+  };
+
+  const editExercise = (index) => {
+    setCurrentExercise(exercises[index]);
+    setEditIndex(index);
+  };
+
+  const deleteExercise = (index) => {
+    const updatedExercises = exercises.filter((_, i) => i !== index);
+    setExercises(updatedExercises);
+    toast.success("Exercise removed.");
   };
 
   const handleSubmit = async (e) => {
@@ -126,14 +154,18 @@ const UploadWorkout = ({ onWorkoutSave }) => {
 
     const workoutData = {
       userID,
-      workoutName: workoutName || "Untitled Workout", // Default to "Untitled Workout" if no name provided
+      workoutName: workoutName || "Untitled Workout",
       workoutDate,
       exercises: exercises.map((exercise) => ({
         muscleGroup: exercise.muscleGroup,
         exercise: exercise.exercise,
         sets: Number(exercise.sets),
         reps: Number(exercise.reps),
-        weight: Number(exercise.weight),
+        weight: exercise.isAssistance
+          ? -Math.abs(Number(exercise.weight))
+          : Math.abs(Number(exercise.weight)),
+        weightType: exercise.weightType,
+        isAssistance: exercise.isAssistance,
       })),
     };
 
@@ -162,111 +194,116 @@ const UploadWorkout = ({ onWorkoutSave }) => {
 
   return (
     <div className="upload-workout-container">
-      <h3 className="card-header">Create a New Workout</h3>
-      <form onSubmit={handleSubmit} className="workout-form">
-        <div className="workout-name-container">
+      <h3>Create or Edit a Workout</h3>
+      <form className="workout-form">
+        <div className="form-row">
           <input
             type="text"
             placeholder="Workout Name (Optional)"
             value={workoutName}
             onChange={(e) => setWorkoutName(e.target.value)}
-            className="input-workout-name"
+            className="input-field"
           />
-        </div>
-        <div className="workout-date-container">
-          <label htmlFor="workout-date">Workout Date:</label>
           <input
             type="date"
-            id="workout-date"
             value={workoutDate}
             onChange={(e) => setWorkoutDate(e.target.value)}
-            className="input-workout-date"
-            required
+            className="input-field"
           />
         </div>
-        <div className="exercise-card">
-          <div className="exercise-header">
-            <h4>Add an Exercise</h4>
-          </div>
-          <div className="exercise-inputs">
-            <select
-              value={currentExercise.muscleGroup}
-              onChange={(e) => handleInputChange("muscleGroup", e.target.value)}
-              className="select-input"
-            >
-              <option value="">Select Muscle Group</option>
-              {muscleGroups.map((group) => (
-                <option key={group} value={group}>
-                  {group}
+        <div className="form-row">
+          <select
+            value={currentExercise.muscleGroup}
+            onChange={(e) => handleInputChange("muscleGroup", e.target.value)}
+            className="select-input"
+          >
+            <option value="">Select Muscle Group</option>
+            {muscleGroups.map((group) => (
+              <option key={group} value={group}>
+                {group}
+              </option>
+            ))}
+          </select>
+          <select
+            value={currentExercise.exercise}
+            onChange={(e) => handleInputChange("exercise", e.target.value)}
+            disabled={!currentExercise.muscleGroup}
+            className="select-input"
+          >
+            <option value="">Select Exercise</option>
+            {currentExercise.muscleGroup &&
+              exercisesList[currentExercise.muscleGroup].map((ex) => (
+                <option key={ex} value={ex}>
+                  {ex}
                 </option>
               ))}
-            </select>
-            <select
-              value={currentExercise.exercise}
-              onChange={(e) => handleInputChange("exercise", e.target.value)}
-              disabled={!currentExercise.muscleGroup}
-              className="select-input"
-            >
-              <option value="">Select Exercise</option>
-              {currentExercise.muscleGroup &&
-                exercisesList[currentExercise.muscleGroup].map((ex) => (
-                  <option key={ex} value={ex}>
-                    {ex}
-                  </option>
-                ))}
-            </select>
-            <input
-              type="number"
-              placeholder="Sets"
-              value={currentExercise.sets}
-              onChange={(e) => handleInputChange("sets", e.target.value)}
-              className="input-field"
-            />
-            <input
-              type="number"
-              placeholder="Reps"
-              value={currentExercise.reps}
-              onChange={(e) => handleInputChange("reps", e.target.value)}
-              className="input-field"
-            />
-            <input
-              type="number"
-              placeholder="Weight (kg)"
-              value={currentExercise.weight}
-              onChange={(e) => handleInputChange("weight", e.target.value)}
-              className="input-field"
-            />
-          </div>
-          <div className="button-group">
-            <button type="button" className="add-btn" onClick={addExercise}>
-              Add Exercise
-            </button>
-          </div>
+          </select>
+          <input
+            type="number"
+            placeholder="Sets"
+            value={currentExercise.sets}
+            onChange={(e) => handleInputChange("sets", e.target.value)}
+            className="input-field"
+          />
+          <input
+            type="number"
+            placeholder="Reps"
+            value={currentExercise.reps}
+            onChange={(e) => handleInputChange("reps", e.target.value)}
+            className="input-field"
+          />
+          <input
+            type="number"
+            placeholder="Weight"
+            value={currentExercise.weight}
+            onChange={(e) => handleInputChange("weight", e.target.value)}
+            className="input-field"
+          />
         </div>
-        <div className="button-group">
-          <button type="submit" className="save-btn">
-            Save Workout
+        <div className="form-row">
+          <select
+            value={currentExercise.weightType}
+            onChange={(e) => handleInputChange("weightType", e.target.value)}
+            className="select-input"
+          >
+            {weightTypes.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+          <select
+            value={currentExercise.isAssistance}
+            onChange={(e) =>
+              handleInputChange("isAssistance", e.target.value === "true")
+            }
+            className="select-input"
+          >
+            <option value="false">Regular</option>
+            <option value="true">Assisted</option>
+          </select>
+          <button type="button" onClick={addOrUpdateExercise}>
+            {editIndex !== null ? "Update Exercise" : "Add Exercise"}
           </button>
         </div>
       </form>
-
-      {/* Current Workout Summary */}
       <div className="current-workout-summary">
         <h4>Current Workout</h4>
-        {workoutName && <h5>{workoutName}</h5>}
-        {workoutDate && <p>Date: {workoutDate}</p>}
         {exercises.length > 0 && (
-          <ul className="exercise-summary-list">
+          <ul>
             {exercises.map((exercise, index) => (
-              <li key={index} className="exercise-summary-item">
+              <li key={index}>
                 <strong>{exercise.exercise}</strong> - {exercise.sets} sets of{" "}
-                {exercise.reps} reps at {exercise.weight} kg (
-                {exercise.muscleGroup})
+                {exercise.reps} reps at {exercise.weight} {exercise.weightType} (
+                {exercise.isAssistance ? "Assisted" : "Regular"})
+                <button onClick={() => editExercise(index)}>Edit</button>
+                <button onClick={() => deleteExercise(index)}>Delete</button>
               </li>
             ))}
           </ul>
         )}
       </div>
+      <button onClick={handleSubmit}>Save Workout</button>
     </div>
   );
 };
