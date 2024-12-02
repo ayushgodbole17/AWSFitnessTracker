@@ -1,77 +1,21 @@
-.container {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  position: relative;
-  min-height: 100vh;
-  gap: 20px; /* Add spacing between sections */
+/* HomePage.css */
+.home-container {
+  padding: 40px 20px;
 }
 
-.header-container {
-  width: 100%;
-  padding: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.section {
   margin-bottom: 20px;
 }
 
-.page-title {
-  font-size: 2rem;
+.section-header {
+  font-size: 24px;
   font-weight: bold;
-  margin: 0;
-}
-
-.btn-danger {
-  padding: 10px 15px;
-  background-color: #e60000;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  font-size: 1rem;
-}
-
-.btn-danger:hover {
-  background-color: #b30000;
-}
-
-/* Responsive Layout for Workout and Analytics */
-.row {
-  display: flex;
-  flex-wrap: wrap; /* Allow wrapping for smaller screens */
-  gap: 20px;
-  width: 100%;
+  margin-bottom: 10px;
 }
 
 .card {
-  flex: 1 1 48%;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 20px;
-  text-align: left;
-  height: auto;
-}
-
-.scroll-card {
-  overflow-y: auto;
-  max-height: 400px;
-}
-
-.scroll-card::-webkit-scrollbar {
-  width: 8px;
-}
-
-.scroll-card::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 4px;
-}
-
-.scroll-card::-webkit-scrollbar-thumb:hover {
-  background: #aaa;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }

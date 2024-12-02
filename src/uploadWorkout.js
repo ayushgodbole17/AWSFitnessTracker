@@ -80,7 +80,6 @@ const UploadWorkout = ({ onWorkoutSave, editingWorkout }) => {
   };
   const weightTypes = ["kg", "machine"];
 
-  // Populate form fields when editing an existing workout
   useEffect(() => {
     if (editingWorkout) {
       console.log("Editing workout:", editingWorkout);
@@ -160,20 +159,20 @@ const UploadWorkout = ({ onWorkoutSave, editingWorkout }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    const userID = localStorage.getItem("email"); // Retrieve the userID
+
+    const userID = localStorage.getItem("email");
     if (!userID) {
       toast.error("You are not authenticated. Please log in again.");
       return;
     }
-  
+
     if (!workoutDate) {
       toast.error("Please provide a workout date.");
       return;
     }
-  
+
     const workoutData = {
-      userID, // Include userID in the request payload
+      userID,
       workoutID: editingWorkout?.workoutID || null,
       workoutName: workoutName || "Untitled Workout",
       workoutDate,
@@ -189,11 +188,11 @@ const UploadWorkout = ({ onWorkoutSave, editingWorkout }) => {
         isAssistance: exercise.isAssistance,
       })),
     };
-  
+
     const url = editingWorkout
       ? `https://6a29no5ke5.execute-api.us-east-1.amazonaws.com/workoutStage1/updateWorkout`
       : `https://6a29no5ke5.execute-api.us-east-1.amazonaws.com/workoutStage1/saveWorkout`;
-  
+
     try {
       console.log("Submitting workout data:", JSON.stringify(workoutData, null, 2));
       const response = await axios.post(url, workoutData);
@@ -206,7 +205,6 @@ const UploadWorkout = ({ onWorkoutSave, editingWorkout }) => {
       toast.error("Failed to save workout. Please try again.");
     }
   };
-  
 
   return (
     <div className="upload-workout-container">
@@ -218,19 +216,20 @@ const UploadWorkout = ({ onWorkoutSave, editingWorkout }) => {
             placeholder="Workout Name (Optional)"
             value={workoutName}
             onChange={(e) => setWorkoutName(e.target.value)}
-            className="input-field"
+            className="exercise-input"
           />
           <input
             type="date"
             value={workoutDate}
             onChange={(e) => setWorkoutDate(e.target.value)}
-            className="input-field"
+            className="exercise-input"
             required
           />
         </div>
         <div className="exercise-card">
           <h4>{editIndex !== null ? "Edit Exercise" : "Add Exercise"}</h4>
-          <div className="exercise-inputs">
+          <div className="exercise-input-row">
+            <label className="form-label">Muscle Group:</label>
             <select
               value={currentExercise.muscleGroup}
               onChange={(e) => handleInputChange("muscleGroup", e.target.value)}
@@ -243,6 +242,8 @@ const UploadWorkout = ({ onWorkoutSave, editingWorkout }) => {
                 </option>
               ))}
             </select>
+
+            <label className="form-label">Exercise:</label>
             <select
               value={currentExercise.exercise}
               onChange={(e) => handleInputChange("exercise", e.target.value)}
@@ -257,27 +258,39 @@ const UploadWorkout = ({ onWorkoutSave, editingWorkout }) => {
                   </option>
                 ))}
             </select>
+          </div>
+
+          <div className="exercise-input-row">
+            <label className="form-label">Sets:</label>
             <input
               type="number"
               placeholder="Sets"
               value={currentExercise.sets}
               onChange={(e) => handleInputChange("sets", e.target.value)}
-              className="input-field"
+              className="short-input"
             />
+
+            <label className="form-label">Reps:</label>
             <input
               type="number"
               placeholder="Reps"
               value={currentExercise.reps}
               onChange={(e) => handleInputChange("reps", e.target.value)}
-              className="input-field"
+              className="short-input"
             />
+
+            <label className="form-label">Weight:</label>
             <input
               type="number"
               placeholder="Weight"
               value={currentExercise.weight}
               onChange={(e) => handleInputChange("weight", e.target.value)}
-              className="input-field"
+              className="short-input"
             />
+          </div>
+
+          <div className="exercise-input-row">
+            <label className="form-label">Weight Type:</label>
             <select
               value={currentExercise.weightType}
               onChange={(e) => handleInputChange("weightType", e.target.value)}
@@ -289,6 +302,8 @@ const UploadWorkout = ({ onWorkoutSave, editingWorkout }) => {
                 </option>
               ))}
             </select>
+
+            <label className="form-label">Assistance:</label>
             <select
               value={currentExercise.isAssistance}
               onChange={(e) =>
