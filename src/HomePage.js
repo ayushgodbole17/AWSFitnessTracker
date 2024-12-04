@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import UploadWorkout from "./uploadWorkout";
 import GetWorkouts from "./getWorkouts";
 import WorkoutAnalytics from "./workoutAnalytics";
+import Chatbot from "./chatbot";
 import "./HomePage.css";
+import "./chatbot.css"; // Import chatbot styles as well
 
 const HomePage = ({ onLogout }) => {
   const [editingWorkout, setEditingWorkout] = useState(null);
@@ -23,7 +25,7 @@ const HomePage = ({ onLogout }) => {
       {/* Title and Sign Out Button */}
       <header className="home-header">
         <h1 className="main-title">GD Fitness Tracker</h1>
-        <button className="sign-out-btn" onClick={onLogout}>
+        <button onClick={onLogout}>
           Sign Out
         </button>
       </header>
@@ -46,6 +48,11 @@ const HomePage = ({ onLogout }) => {
 
       <div className="card-container">
         <WorkoutAnalytics workouts={workouts} />
+      </div>
+
+      {/* Chatbot Section */}
+      <div className="chatbot-container">
+        <Chatbot />
       </div>
     </div>
   );

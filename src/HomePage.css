@@ -1,42 +1,54 @@
-/* Header Section */
+.home-container {
+  padding: 40px 20px;
+}
+
 .home-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
-  padding: 20px 20px;
-  background-color: #f8f9fa;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  position: relative; /* Relative positioning for centralized title */
+  margin-bottom: 20px;
 }
 
 .main-title {
-  font-size: 2rem;  /* Adjusted font size for balance */
+  font-size: 1.8rem; /* Reduced size for better balance */
   font-weight: bold;
   color: #007bff;
-  text-align: center;
-  flex-grow: 1;  /* This makes the title occupy central space */
 }
 
-/* Sign Out Button */
 .sign-out-btn {
-  padding: 12px 25px;  /* Increased padding for better prominence */
-  font-size: 1rem;
-  color: #ffffff;
-  background-color: #dc3545;
+  padding: 6px 12px; /* Reduced padding to make the button smaller */
+  font-size: 0.9rem; /* Reduced font size to make the button text smaller */
+  background-color: #d9534f;
+  color: white;
   border: none;
-  border-radius: 10px;  /* Added more rounded corners */
+  border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Subtle shadow for depth */
-  position: absolute; /* Absolute positioning to maintain alignment */
-  right: 20px;  /* Aligns it on the right end */
-  top: 50%;  /* Vertically centers it relative to the container */
-  transform: translateY(-50%);
+  transition: background-color 0.3s ease-in-out;
 }
 
 .sign-out-btn:hover {
-  background-color: #c82333;
-  transform: scale(1.05);  /* Slight grow on hover to make it more interactive */
+  background-color: #c9302c;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+}
+
+.card-container {
+  margin-bottom: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+/* Chatbot Integration */
+.chatbot-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
 }

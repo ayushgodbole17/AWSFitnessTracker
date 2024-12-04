@@ -1,12 +1,11 @@
 .upload-workout-container {
   width: 95%;
-  max-width: 1400px; /* Keeping the same max width as "Get Workouts" */
+  max-width: 1200px; /* Limit the max width for a more compact display */
   margin: 20px auto;
-  padding: 40px; /* Increase padding to give it a more substantial look */
-  background: #ffffff;
+  padding: 20px; /* Reduced padding to make it more compact */
   border-radius: 10px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
+
 
 /* Increase the workout-title styling */
 .workout-title {
@@ -37,20 +36,16 @@
   border-radius: 5px;
 }
 
-.button-group {
-  margin-top: 15px; /* Add spacing between button group and inputs */
+.action-btn {
+  padding: 10px 15px; /* Reduced padding for compactness */
+  font-size: 1rem; /* Adjusted font size */
+  width: auto; /* Set to auto for adaptive width */
 }
 
-/* Update action button to match the styling of the getWorkouts card */
-.action-btn {
-  width: 100%;
-  padding: 15px 25px; /* Increase padding to match the appearance of buttons in GetWorkouts */
-  background: #007bff;
-  color: #ffffff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1.1rem; /* Slightly increase the font size */
+.button-group {
+  display: flex;
+  gap: 10px; /* Space between buttons */
+  justify-content: flex-start; /* Align buttons left to prevent excessive spacing */
 }
 
 .action-btn:hover {
