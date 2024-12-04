@@ -3,9 +3,10 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import "./getWorkouts.css";
 
-const GetWorkouts = ({ refreshTrigger, onEditWorkout }) => {
-  const [workouts, setWorkouts] = useState([]);
+const GetWorkouts = ({ refreshTrigger, onEditWorkout, setWorkouts }) => {
+  const [workouts, setWorkoutList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [expandedWorkout, setExpandedWorkout] = useState(null);
 
   const fetchWorkouts = async () => {
     const email = localStorage.getItem("email");
@@ -22,7 +23,8 @@ const GetWorkouts = ({ refreshTrigger, onEditWorkout }) => {
         { params: { email } }
       );
       console.log("Fetched workouts:", response.data);
-      setWorkouts(response.data || []);
+      setWorkoutList(response.data || []);
+      setWorkouts(response.data || []); // Update parent state
     } catch (error) {
       console.error("Error fetching workouts:", error);
       toast.error("Failed to fetch workouts. Please try again.");
@@ -60,6 +62,14 @@ const GetWorkouts = ({ refreshTrigger, onEditWorkout }) => {
     }
   };
 
+  const toggleExpandWorkout = (workoutID) => {
+    if (expandedWorkout === workoutID) {
+      setExpandedWorkout(null); // Collapse if clicked again
+    } else {
+      setExpandedWorkout(workoutID); // Expand if clicked
+    }
+  };
+
   useEffect(() => {
     fetchWorkouts();
   }, [refreshTrigger]);
@@ -79,30 +89,32 @@ const GetWorkouts = ({ refreshTrigger, onEditWorkout }) => {
           <ul className="workout-list">
             {workouts.map((workout) => (
               <li key={workout.workoutID} className="workout-item">
-                <div className="workout-header">
+                <div className="workout-header" onClick={() => toggleExpandWorkout(workout.workoutID)}>
                   <h4 className="workout-title">
-                    {workout.workoutName || "Untitled Workout"}
+                    {workout.workoutName || "Untitled Workout"} - {workout.workoutDate ? new Date(workout.workoutDate).toLocaleDateString() : "Unknown Date"}
                   </h4>
-                  <p className="workout-date">
-                    Date:{" "}
-                    {workout.workoutDate
-                      ? new Date(workout.workoutDate).toLocaleDateString()
-                      : "Unknown"}
-                  </p>
                 </div>
-                <ul className="exercise-list">
-                  {workout.exercises.map((exercise, index) => (
-                    <li key={index} className="exercise-item">
-                      <strong>{exercise.exercise}</strong> - {exercise.sets} sets of{" "}
-                      {exercise.reps} reps at {exercise.weight} {exercise.weightType} (
-                      {exercise.isAssistance ? "Assisted" : "Regular"})
-                    </li>
-                  ))}
-                </ul>
+                {expandedWorkout === workout.workoutID && (
+                  <ul className="exercise-list">
+                    {workout.exercises.map((exercise, index) => (
+                      <li key={index} className="exercise-item">
+                        <strong>{exercise.exercise}</strong> - {exercise.sets} sets of{" "}
+                        {exercise.reps} reps at {exercise.weight} {exercise.weightType} (
+                        {exercise.isAssistance ? "Assisted" : "Regular"})
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 <div className="workout-actions">
                   <button
                     className="edit-btn"
-                    onClick={() => onEditWorkout(workout)}
+                    onClick={() => {
+                      if (typeof onEditWorkout === "function") {
+                        onEditWorkout(workout);
+                      } else {
+                        console.error("onEditWorkout is not a function");
+                      }
+                    }}
                   >
                     Edit
                   </button>

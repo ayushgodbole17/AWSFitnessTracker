@@ -1,25 +1,29 @@
 /* Main Container for Distinction */
 .main-container {
-  margin-top: 40px;
+  margin-top: 20px; /* Reduced margin-top for more compact display */
+  width: 95%;
+  max-width: 1400px; /* Reduced max width to make cards more compact */
+  margin: 20px auto;
+  padding: 20px; /* Reduced padding for a compact look */
 }
 
 /* Section Divider */
 .section-divider {
   text-align: center;
-  margin: 20px 0;
-  padding: 10px 0;
+  margin: 15px 0; /* Reduced margin */
+  padding: 5px 0; /* Reduced padding */
   border-bottom: 2px solid #007bff;
 }
 
 .section-heading {
-  font-size: 1.5rem;
+  font-size: 1.2rem; /* Reduced from 1.5rem */
   color: #007bff;
   font-weight: bold;
 }
 
 /* Workout List Section */
 .workouts-container {
-  padding: 20px;
+  padding: 10px; /* Reduced padding for a more compact look */
   border-radius: 10px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   background: linear-gradient(to right, #f8f9fa, #ffffff);
@@ -27,8 +31,9 @@
 
 .workouts-container h3 {
   color: #17a2b8;
-  margin-bottom: 15px;
+  margin-bottom: 10px; /* Reduced margin */
   font-weight: bold;
+  font-size: 1.1rem; /* Reduced font size */
 }
 
 .workouts-container ul {
@@ -37,8 +42,8 @@
 }
 
 .workouts-container li {
-  margin-bottom: 15px;
-  padding: 15px;
+  margin-bottom: 10px; /* Reduced margin between items */
+  padding: 10px; /* Reduced padding for individual workout items */
   border: 1px solid #ddd;
   border-radius: 5px;
   background: #ffffff;
@@ -55,37 +60,38 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 5px; /* Reduced spacing between workout name and exercises */
 }
 
 .workout-header h4 {
   color: #343a40;
   font-weight: bold;
+  font-size: 1.1rem; /* Reduced from 1.5rem */
 }
 
 .workout-header .workout-date {
   color: #6c757d;
-  font-size: 0.9rem;
+  font-size: 0.8rem; /* Reduced from 0.9rem */
 }
 
 .exercise-list {
-  padding-left: 20px;
+  padding-left: 15px; /* Reduced left padding for compactness */
 }
 
 .exercise-list .exercise-item {
-  margin-bottom: 5px;
-  font-size: 0.95rem;
-  line-height: 1.4;
+  margin-bottom: 3px; /* Reduced margin between exercise items */
+  font-size: 0.85rem; /* Reduced font size for exercises */
+  line-height: 1.2; /* Reduced line height for compactness */
 }
 
 button {
-  margin-right: 10px;
+  margin-right: 5px; /* Reduced space between buttons */
   background-color: #007bff;
   color: white;
   border: none;
   border-radius: 5px;
-  padding: 5px 15px;
-  font-size: 0.9rem;
+  padding: 4px 10px; /* Reduced padding for smaller buttons */
+  font-size: 0.8rem; /* Reduced font size for buttons */
 }
 
 button:hover {

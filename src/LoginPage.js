@@ -202,7 +202,7 @@ const LoginPage = ({ onLogin }) => {
               required
             />
           )}
-          <div className="buttons-container">
+          <div className="button-container">
             <button type="submit" className="action-btn">
               {isSigningUp
                 ? "Sign Up"
@@ -210,28 +210,28 @@ const LoginPage = ({ onLogin }) => {
                 ? "Confirm Email"
                 : "Sign In"}
             </button>
+            {!isConfirming && (
+              <button
+                type="button"
+                className="create-account-btn"
+                onClick={() => {
+                  setIsSigningUp(!isSigningUp);
+                  setIsConfirming(false);
+                  setFormData({
+                    email: "",
+                    password: "",
+                    name: "",
+                    gender: "",
+                    birthdate: "",
+                    confirmationCode: "",
+                  });
+                }}
+              >
+                {isSigningUp ? "Back to Sign In" : "Create an Account"}
+              </button>
+            )}
           </div>
         </form>
-        {!isConfirming && (
-          <button
-            type="button"
-            className="toggle-btn"
-            onClick={() => {
-              setIsSigningUp(!isSigningUp);
-              setIsConfirming(false);
-              setFormData({
-                email: "",
-                password: "",
-                name: "",
-                gender: "",
-                birthdate: "",
-                confirmationCode: "",
-              });
-            }}
-          >
-            {isSigningUp ? "Back to Sign In" : "Create an Account"}
-          </button>
-        )}
       </div>
     </div>
   );

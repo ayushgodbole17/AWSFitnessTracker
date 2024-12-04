@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./uploadWorkout.css";
 
-const UploadWorkout = ({ onWorkoutSave, editingWorkout }) => {
+const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
   const [workoutName, setWorkoutName] = useState("");
   const [workoutDate, setWorkoutDate] = useState("");
   const [exercises, setExercises] = useState([]);
@@ -86,8 +86,6 @@ const UploadWorkout = ({ onWorkoutSave, editingWorkout }) => {
       setWorkoutName(editingWorkout.workoutName || "");
       setWorkoutDate(editingWorkout.workoutDate || "");
       setExercises(editingWorkout.exercises || []);
-    } else {
-      resetForm();
     }
   }, [editingWorkout]);
 
@@ -330,8 +328,8 @@ const UploadWorkout = ({ onWorkoutSave, editingWorkout }) => {
                   {exercise.exercise} - {exercise.sets} sets of {exercise.reps} reps at{" "}
                   {exercise.weight} {exercise.weightType} (
                   {exercise.isAssistance ? "Assisted" : "Regular"})
-                  <button onClick={() => editExercise(index)}>Edit</button>
-                  <button onClick={() => deleteExercise(index)}>Delete</button>
+                  <button type="button" onClick={() => editExercise(index)}>Edit</button>
+                  <button type="button" onClick={() => deleteExercise(index)}>Delete</button>
                 </li>
               ))}
             </ul>

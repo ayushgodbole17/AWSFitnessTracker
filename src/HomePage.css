@@ -1,21 +1,42 @@
-/* HomePage.css */
-.home-container {
-  padding: 40px 20px;
+/* Header Section */
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px 20px;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative; /* Relative positioning for centralized title */
 }
 
-.section {
-  margin-bottom: 20px;
-}
-
-.section-header {
-  font-size: 24px;
+.main-title {
+  font-size: 2rem;  /* Adjusted font size for balance */
   font-weight: bold;
-  margin-bottom: 10px;
+  color: #007bff;
+  text-align: center;
+  flex-grow: 1;  /* This makes the title occupy central space */
 }
 
-.card {
-  padding: 20px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+/* Sign Out Button */
+.sign-out-btn {
+  padding: 12px 25px;  /* Increased padding for better prominence */
+  font-size: 1rem;
+  color: #ffffff;
+  background-color: #dc3545;
+  border: none;
+  border-radius: 10px;  /* Added more rounded corners */
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Subtle shadow for depth */
+  position: absolute; /* Absolute positioning to maintain alignment */
+  right: 20px;  /* Aligns it on the right end */
+  top: 50%;  /* Vertically centers it relative to the container */
+  transform: translateY(-50%);
+}
+
+.sign-out-btn:hover {
+  background-color: #c82333;
+  transform: scale(1.05);  /* Slight grow on hover to make it more interactive */
 }

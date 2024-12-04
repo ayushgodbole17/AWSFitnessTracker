@@ -1,49 +1,56 @@
 .upload-workout-container {
-  max-width: 800px;
+  width: 95%;
+  max-width: 1400px; /* Keeping the same max width as "Get Workouts" */
   margin: 20px auto;
-  padding: 20px;
+  padding: 40px; /* Increase padding to give it a more substantial look */
   background: #ffffff;
   border-radius: 10px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+/* Increase the workout-title styling */
 .workout-title {
-  font-size: 1.8rem;
+  font-size: 2rem; /* Increase the font size to make it more prominent */
   color: #007bff;
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .form-row {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 15px; /* Increase the gap between form inputs */
+  margin-bottom: 30px; /* Add more spacing to make the form visually balanced */
 }
 
 .exercise-input-row {
   display: flex;
-  gap: 10px;
+  gap: 15px; /* Increase the gap between exercise inputs */
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 20px; /* Add more space below each row */
 }
 
 .input-field,
 .select-input {
   flex: 1;
-  padding: 10px;
+  padding: 12px; /* Add some padding for a consistent feel */
   border: 1px solid #ddd;
   border-radius: 5px;
 }
 
+.button-group {
+  margin-top: 15px; /* Add spacing between button group and inputs */
+}
+
+/* Update action button to match the styling of the getWorkouts card */
 .action-btn {
   width: 100%;
-  padding: 10px 20px;
+  padding: 15px 25px; /* Increase padding to match the appearance of buttons in GetWorkouts */
   background: #007bff;
   color: #ffffff;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 1.1rem; /* Slightly increase the font size */
 }
 
 .action-btn:hover {
