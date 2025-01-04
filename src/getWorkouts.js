@@ -23,8 +23,17 @@ const GetWorkouts = ({ refreshTrigger, onEditWorkout, setWorkouts }) => {
         { params: { email } }
       );
       console.log("Fetched workouts:", response.data);
-      setWorkoutList(response.data || []);
-      setWorkouts(response.data || []); // Update parent state
+
+      // Sort workouts by date (newest first) before saving to state
+      const sortedWorkouts = [...(response.data || [])].sort((a, b) => {
+        // If one of them has no date, it stays at the bottom
+        if (!a.workoutDate) return 1; 
+        if (!b.workoutDate) return -1;
+        return new Date(b.workoutDate) - new Date(a.workoutDate);
+      });
+
+      setWorkoutList(sortedWorkouts);
+      setWorkouts(sortedWorkouts); // Update parent state
     } catch (error) {
       console.error("Error fetching workouts:", error);
       toast.error("Failed to fetch workouts. Please try again.");
@@ -72,6 +81,7 @@ const GetWorkouts = ({ refreshTrigger, onEditWorkout, setWorkouts }) => {
 
   useEffect(() => {
     fetchWorkouts();
+    // eslint-disable-next-line
   }, [refreshTrigger]);
 
   return (
@@ -89,9 +99,15 @@ const GetWorkouts = ({ refreshTrigger, onEditWorkout, setWorkouts }) => {
           <ul className="workout-list">
             {workouts.map((workout) => (
               <li key={workout.workoutID} className="workout-item">
-                <div className="workout-header" onClick={() => toggleExpandWorkout(workout.workoutID)}>
+                <div
+                  className="workout-header"
+                  onClick={() => toggleExpandWorkout(workout.workoutID)}
+                >
                   <h4 className="workout-title">
-                    {workout.workoutName || "Untitled Workout"} - {workout.workoutDate ? new Date(workout.workoutDate).toLocaleDateString() : "Unknown Date"}
+                    {workout.workoutName || "Untitled Workout"} -{" "}
+                    {workout.workoutDate
+                      ? new Date(workout.workoutDate).toLocaleDateString()
+                      : "Unknown Date"}
                   </h4>
                 </div>
                 {expandedWorkout === workout.workoutID && (

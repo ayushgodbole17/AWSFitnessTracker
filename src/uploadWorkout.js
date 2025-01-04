@@ -19,9 +19,11 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
   });
   const [editIndex, setEditIndex] = useState(null);
 
-  const muscleGroups = ["Chest", "Legs", "Back", "Shoulders", "Arms"];
+  const muscleGroups = ["Chest", "Legs", "Back", "Shoulders", "Arms", "Abs"];
   const exercisesList = {
     Chest: [
+      "Pushups",
+      "Assisted Dips",
       "Dumbbell Bench Press",
       "Dumbbell Incline Press",
       "Barbell Bench Press",
@@ -29,54 +31,83 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Chest Press Machine",
       "Cable Crossovers",
       "Incline Cable Crossovers",
-      "Decline Cable Crossovers",
-      "Dips",
-      "Assisted Dips",
+      "Decline Cable Crossovers"
     ],
     Legs: [
+      "Squats",
+      "Hack Squat",
+      "Leg Press",
       "Leg Extensions",
+      "Deadlifts",
       "Hamstring Curls",
+      "Lying Hamstring Curl",
+      "Smith Machine Goodmornings",
+      "Romanian Deadlifts",
+      "Bulgarian Split Squats",
       "Calf Raises",
+      "Seated Calf Raises",
+      "Tib Raises",
       "Glute Machine",
       "Hip Thrusts",
       "Abductor Machine",
       "Adductor Machine",
-      "Leg Press",
-      "Squats",
-      "Deadlifts",
+      "Dumbbell Lunges",
+      "Sprinter Lunges Dumbbell",
+      "Sprinter Lunges Smith Machine"
     ],
     Back: [
       "Pull Ups",
       "Assisted Pull Ups",
       "Chin Ups",
       "Assisted Chin-Ups",
+      "Lat Pulldown",
+      "Straight Arm Cable Pulldown",
       "Dumbbell Rows",
       "Barbell Rows",
       "Cable Rows",
-      "Lat Pulldown",
+      "T Bar Row",
       "High Row Machine",
       "Low Row Machine",
       "Back Extensions Bench",
       "Back Extensions Machine",
+      "Dumbbell Shrugs",
+      "Barbell Shrugs",
+      "Trap Bar Shrugs",
+      "Incline Trap Raise"
     ],
     Arms: [
       "Tricep Press Machine",
-      "Tricep Extensions",
+      "Cable Overhead Tricep Extensions",
+      "Tricep Pulldown Rope",
       "Dumbbell Kickbacks",
+      "Cable Kickbacks",
+      "Skullcrushers",
       "Bicep Curls Dumbbell",
       "Bicep Curls Barbell",
       "Bicep Curls Cable",
       "Reverse Curls Cable",
       "Reverse Curls Dumbbell",
       "Reverse Curls Barbell",
+      "Hammer Curls Dumbbell",
+      "Forearm Curls Pronated",
+      "Forearm Curls Supinated"
     ],
     Shoulders: [
       "Shoulder Press Machine",
-      "Front Raises",
+      "Shoulder Press Dumbbell",
+      "Shoulder Press Barbell",
       "Lateral Raises",
       "Face Pulls",
       "Rotator Cuff Band",
+      "External Rotation Horizontal",
+      "External Rotation Vertical",
+      "Rotator Cuff Cable"
     ],
+    Abs: [
+      "Crunch Machine",
+      "V-Crunch Machine",
+      "Oblique Machine"
+    ]
   };
   const weightTypes = ["kg", "machine"];
 
@@ -208,6 +239,7 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
     <div className="upload-workout-container">
       <h3>{editingWorkout ? "Edit Workout" : "Create a New Workout"}</h3>
       <form onSubmit={handleSubmit}>
+        {/* First row: Workout Name & Date */}
         <div className="form-row">
           <input
             type="text"
@@ -224,101 +256,104 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
             required
           />
         </div>
-        <div className="exercise-card">
-          <h4>{editIndex !== null ? "Edit Exercise" : "Add Exercise"}</h4>
-          <div className="exercise-input-row">
-            <label className="form-label">Muscle Group:</label>
-            <select
-              value={currentExercise.muscleGroup}
-              onChange={(e) => handleInputChange("muscleGroup", e.target.value)}
-              className="select-input"
-            >
-              <option value="">Select Muscle Group</option>
-              {muscleGroups.map((group) => (
-                <option key={group} value={group}>
-                  {group}
+  
+        {/* Exercise Info Section (removed the .exercise-card wrapper) */}
+        <h4>{editIndex !== null ? "Edit Exercise" : "Add Exercise"}</h4>
+        <div className="exercise-input-row">
+          <label className="form-label">Muscle Group:</label>
+          <select
+            value={currentExercise.muscleGroup}
+            onChange={(e) => handleInputChange("muscleGroup", e.target.value)}
+            className="select-input"
+          >
+            <option value="">Select Muscle Group</option>
+            {muscleGroups.map((group) => (
+              <option key={group} value={group}>
+                {group}
+              </option>
+            ))}
+          </select>
+  
+          <label className="form-label">Exercise:</label>
+          <select
+            value={currentExercise.exercise}
+            onChange={(e) => handleInputChange("exercise", e.target.value)}
+            disabled={!currentExercise.muscleGroup}
+            className="select-input"
+          >
+            <option value="">Select Exercise</option>
+            {currentExercise.muscleGroup &&
+              exercisesList[currentExercise.muscleGroup].map((ex) => (
+                <option key={ex} value={ex}>
+                  {ex}
                 </option>
               ))}
-            </select>
-
-            <label className="form-label">Exercise:</label>
-            <select
-              value={currentExercise.exercise}
-              onChange={(e) => handleInputChange("exercise", e.target.value)}
-              disabled={!currentExercise.muscleGroup}
-              className="select-input"
-            >
-              <option value="">Select Exercise</option>
-              {currentExercise.muscleGroup &&
-                exercisesList[currentExercise.muscleGroup].map((ex) => (
-                  <option key={ex} value={ex}>
-                    {ex}
-                  </option>
-                ))}
-            </select>
-          </div>
-
-          <div className="exercise-input-row">
-            <label className="form-label">Sets:</label>
-            <input
-              type="number"
-              placeholder="Sets"
-              value={currentExercise.sets}
-              onChange={(e) => handleInputChange("sets", e.target.value)}
-              className="short-input"
-            />
-
-            <label className="form-label">Reps:</label>
-            <input
-              type="number"
-              placeholder="Reps"
-              value={currentExercise.reps}
-              onChange={(e) => handleInputChange("reps", e.target.value)}
-              className="short-input"
-            />
-
-            <label className="form-label">Weight:</label>
-            <input
-              type="number"
-              placeholder="Weight"
-              value={currentExercise.weight}
-              onChange={(e) => handleInputChange("weight", e.target.value)}
-              className="short-input"
-            />
-          </div>
-
-          <div className="exercise-input-row">
-            <label className="form-label">Weight Type:</label>
-            <select
-              value={currentExercise.weightType}
-              onChange={(e) => handleInputChange("weightType", e.target.value)}
-              className="select-input"
-            >
-              {weightTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-
-            <label className="form-label">Assistance:</label>
-            <select
-              value={currentExercise.isAssistance}
-              onChange={(e) =>
-                handleInputChange("isAssistance", e.target.value === "true")
-              }
-              className="select-input"
-            >
-              <option value="false">Regular</option>
-              <option value="true">Assisted</option>
-            </select>
-          </div>
-          <div className="button-group">
-            <button type="button" onClick={addOrUpdateExercise}>
-              {editIndex !== null ? "Update Exercise" : "Add Exercise"}
-            </button>
-          </div>
+          </select>
         </div>
+  
+        <div className="exercise-input-row">
+          <label className="form-label">Sets:</label>
+          <input
+            type="number"
+            placeholder="Sets"
+            value={currentExercise.sets}
+            onChange={(e) => handleInputChange("sets", e.target.value)}
+            className="short-input"
+          />
+  
+          <label className="form-label">Reps:</label>
+          <input
+            type="number"
+            placeholder="Reps"
+            value={currentExercise.reps}
+            onChange={(e) => handleInputChange("reps", e.target.value)}
+            className="short-input"
+          />
+  
+          <label className="form-label">Weight:</label>
+          <input
+            type="number"
+            placeholder="Weight"
+            value={currentExercise.weight}
+            onChange={(e) => handleInputChange("weight", e.target.value)}
+            className="short-input"
+          />
+        </div>
+  
+        <div className="exercise-input-row">
+          <label className="form-label">Weight Type:</label>
+          <select
+            value={currentExercise.weightType}
+            onChange={(e) => handleInputChange("weightType", e.target.value)}
+            className="select-input"
+          >
+            {weightTypes.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+  
+          <label className="form-label">Assistance:</label>
+          <select
+            value={currentExercise.isAssistance}
+            onChange={(e) =>
+              handleInputChange("isAssistance", e.target.value === "true")
+            }
+            className="select-input"
+          >
+            <option value="false">Regular</option>
+            <option value="true">Assisted</option>
+          </select>
+        </div>
+  
+        <div className="button-group">
+          <button type="button" onClick={addOrUpdateExercise}>
+            {editIndex !== null ? "Update Exercise" : "Add Exercise"}
+          </button>
+        </div>
+  
+        {/* Current Exercises */}
         <div className="current-workout-summary">
           <h4>Current Exercises</h4>
           {exercises.length > 0 && (
@@ -328,17 +363,25 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
                   {exercise.exercise} - {exercise.sets} sets of {exercise.reps} reps at{" "}
                   {exercise.weight} {exercise.weightType} (
                   {exercise.isAssistance ? "Assisted" : "Regular"})
-                  <button type="button" onClick={() => editExercise(index)}>Edit</button>
-                  <button type="button" onClick={() => deleteExercise(index)}>Delete</button>
+                  <button type="button" onClick={() => editExercise(index)}>
+                    Edit
+                  </button>
+                  <button type="button" onClick={() => deleteExercise(index)}>
+                    Delete
+                  </button>
                 </li>
               ))}
             </ul>
           )}
         </div>
-        <button type="submit">{editingWorkout ? "Update Workout" : "Save Workout"}</button>
+  
+        <button type="submit">
+          {editingWorkout ? "Update Workout" : "Save Workout"}
+        </button>
       </form>
     </div>
   );
+  
 };
 
 export default UploadWorkout;

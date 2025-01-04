@@ -1,19 +1,53 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-import "./index.css"
+// index.js
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "./index.css";
 
+// Scroll-based background gradient effect...
+document.addEventListener("scroll", () => {
+  const scrollPosition = window.scrollY;
+  const maxScroll = document.body.scrollHeight - window.innerHeight;
+  const scrollPercent = scrollPosition / maxScroll;
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+  const startColor = [78, 173, 255]; // Blue
+  const endColor = [170, 219, 243]; // Light gray
+
+  const r = Math.round(
+    startColor[0] + (endColor[0] - startColor[0]) * scrollPercent
+  );
+  const g = Math.round(
+    startColor[1] + (endColor[1] - startColor[1]) * scrollPercent
+  );
+  const b = Math.round(
+    startColor[2] + (endColor[2] - startColor[2]) * scrollPercent
+  );
+
+  document.body.style.background = `rgb(${r}, ${g}, ${b})`;
+});
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
+    {/* Your entire app */}
     <App />
+
+    {/* ToastContainer must be rendered */}
+    <ToastContainer
+      position="top-right"
+      autoClose={4000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick
+      rtl={false}
+      draggable
+      pauseOnHover
+    />
   </React.StrictMode>
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+// For performance reporting...
 reportWebVitals();

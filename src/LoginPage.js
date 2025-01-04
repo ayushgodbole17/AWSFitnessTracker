@@ -5,6 +5,14 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./LoginPage.css";
 
+// Regex to ensure strong passwords:
+//  - At least 8 characters
+//  - At least 1 uppercase letter
+//  - At least 1 lowercase letter
+//  - At least 1 digit
+//  - At least 1 special character (@$!%*?&#)
+const strongPasswordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#]).{8,}$/;
+
 const LoginPage = ({ onLogin }) => {
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -19,22 +27,15 @@ const LoginPage = ({ onLogin }) => {
 
   const navigate = useNavigate();
 
-  // Input change handler
+  // Handle input changes
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Input validation functions
-  const validateEmail = (email) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  // Validate email using simple regex
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  const validatePassword = (password) =>
-    password.length >= 8 &&
-    /[A-Z]/.test(password) &&
-    /[a-z]/.test(password) &&
-    /[0-9]/.test(password) &&
-    /[@$!%*?&#]/.test(password);
-
+  // Validate birthdate in YYYY-MM-DD format
   const validateBirthdate = (birthdate) =>
     /^\d{4}-\d{2}-\d{2}$/.test(birthdate);
 
@@ -42,31 +43,37 @@ const LoginPage = ({ onLogin }) => {
   const handleSignUp = async () => {
     const { email, password, name, gender, birthdate } = formData;
 
+    // Check required fields
     if (!email || !password || !name || !gender || !birthdate) {
       toast.error("Please fill in all required fields.");
       return;
     }
 
+    // Validate email
     if (!validateEmail(email)) {
       toast.error("Invalid email format.");
       return;
     }
 
-    if (!validatePassword(password)) {
+    // Check if password is strong
+    if (!strongPasswordRegex.test(password)) {
       toast.error(
-        "Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character."
+        "Password must have at least 8 characters, " +
+          "including uppercase, lowercase, a number, and a special character."
       );
       return;
     }
 
+    // Validate birthdate
     if (!validateBirthdate(birthdate)) {
       toast.error("Birthdate must be in YYYY-MM-DD format.");
       return;
     }
 
+    // Attempt Cognito sign-up
     try {
       await signUp(email, password, name, gender, birthdate);
-      localStorage.setItem("pendingEmail", email); // Save email for confirmation
+      localStorage.setItem("pendingEmail", email);
       toast.success("Sign-up successful! Check your email for the confirmation code.");
       setIsSigningUp(false);
       setIsConfirming(true);
@@ -105,9 +112,10 @@ const LoginPage = ({ onLogin }) => {
     try {
       await signIn(email, password);
       toast.success("Sign-in successful!");
-      onLogin();
+      onLogin(); // e.g., sets auth state in parent
       navigate("/home");
     } catch (error) {
+      // Display user-friendly errors
       toast.error(
         error.message.includes("User does not exist")
           ? "No account found for this email. Please sign up."
@@ -118,7 +126,7 @@ const LoginPage = ({ onLogin }) => {
     }
   };
 
-  // Submit handler
+  // Master form submit
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isSigningUp) {
@@ -141,6 +149,7 @@ const LoginPage = ({ onLogin }) => {
             : "Sign In"}
         </h2>
         <form className="login-form" onSubmit={handleSubmit}>
+          {/* Show name, gender, birthdate only if signing up */}
           {isSigningUp && (
             <>
               <input
@@ -152,15 +161,20 @@ const LoginPage = ({ onLogin }) => {
                 onChange={handleInputChange}
                 required
               />
-              <input
-                type="text"
+
+              <select
                 name="gender"
                 className="input-field"
-                placeholder="Gender"
                 value={formData.gender}
                 onChange={handleInputChange}
                 required
-              />
+              >
+                <option value="">Select Gender</option>
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+                <option value="other">Other</option>
+              </select>
+
               <input
                 type="date"
                 name="birthdate"
@@ -171,6 +185,8 @@ const LoginPage = ({ onLogin }) => {
               />
             </>
           )}
+
+          {/* Always show email input */}
           <input
             type="email"
             name="email"
@@ -180,6 +196,8 @@ const LoginPage = ({ onLogin }) => {
             onChange={handleInputChange}
             required
           />
+
+          {/* Password if not confirming */}
           {(isSigningUp || !isConfirming) && (
             <input
               type="password"
@@ -191,6 +209,8 @@ const LoginPage = ({ onLogin }) => {
               required
             />
           )}
+
+          {/* Confirmation code if confirming */}
           {isConfirming && (
             <input
               type="text"
@@ -202,6 +222,8 @@ const LoginPage = ({ onLogin }) => {
               required
             />
           )}
+
+          {/* Buttons */}
           <div className="button-container">
             <button type="submit" className="action-btn">
               {isSigningUp
@@ -210,6 +232,8 @@ const LoginPage = ({ onLogin }) => {
                 ? "Confirm Email"
                 : "Sign In"}
             </button>
+
+            {/* Toggle between sign-up and sign-in if not confirming */}
             {!isConfirming && (
               <button
                 type="button"

@@ -63,18 +63,18 @@ function Chatbot() {
   };
 
   return (
-    <div className="chat-widget">
+    <div className={`chat-widget ${isOpen ? "chat-widget-expanded" : ""}`}>
       {isOpen ? (
         <div className="chat-widget-open">
           <div className="chat-header" onClick={toggleChat}>
-            Chat with us
+            <span className="chat-title">Chat with us</span>
             <button className="close-btn" onClick={toggleChat}>&times;</button>
           </div>
           <div className="chat-body">
             <div className="chat-history">
               {chatHistory.map((chat, index) => (
                 <div key={index} className={`chat-bubble ${chat.sender}`}>
-                  <strong>{chat.sender === 'user' ? 'You' : 'Bot'}: </strong>
+                  <strong>{chat.sender === "user" ? "You" : "Bot"}: </strong>
                   {chat.message}
                 </div>
               ))}
@@ -92,14 +92,16 @@ function Chatbot() {
                 placeholder="Ask me anything about workouts!"
                 className="chat-input"
               />
-              <button onClick={handleSend} className="chat-send-btn">Send</button>
+              <button onClick={handleSend} className="chat-send-btn">
+                Send
+              </button>
             </div>
           </div>
         </div>
       ) : (
         <div className="chat-widget-closed" onClick={toggleChat}>
           <div className="chat-header">
-            Chat with us
+            <span className="chat-title">Chat with us</span>
           </div>
         </div>
       )}

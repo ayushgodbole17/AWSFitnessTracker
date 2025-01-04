@@ -1,53 +1,132 @@
+/* Container for the entire upload-workout form */
 .upload-workout-container {
   width: 95%;
-  max-width: 1200px; /* Limit the max width for a more compact display */
-  margin: 20px auto;
-  padding: 20px; /* Reduced padding to make it more compact */
-  border-radius: 10px;
+  max-width: 800px; /* Narrower max-width for a cleaner look */
+  margin: 40px auto; /* More top/bottom space */
+  padding: 20px;
+  /* Let the background remain transparent or match your theme if desired */
+  background: transparent;
 }
 
-
-/* Increase the workout-title styling */
-.workout-title {
-  font-size: 2rem; /* Increase the font size to make it more prominent */
-  color: #007bff;
+.upload-workout-container h3 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
   text-align: center;
-  margin-bottom: 30px;
+  color: #007bff;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
+/* First row with Workout Name & Date */
 .form-row {
   display: flex;
-  gap: 15px; /* Increase the gap between form inputs */
-  margin-bottom: 30px; /* Add more spacing to make the form visually balanced */
+  flex-wrap: wrap;    /* Allows wrapping on small screens */
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
+.exercise-input {
+  flex: 1;
+  min-width: 200px;  /* Ensures each input has some minimum width */
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* The card that wraps the Add Exercise section */
+.exercise-card {
+  background: #f8f9fa;  /* Light card background */
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.exercise-card h4 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  color: #343a40;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Each row in the exercise card (Muscle Group row, Sets row, etc.) */
 .exercise-input-row {
   display: flex;
-  gap: 15px; /* Increase the gap between exercise inputs */
+  flex-wrap: wrap;  /* Let items wrap if screen is narrow */
+  gap: 1rem;
   align-items: center;
-  margin-bottom: 20px; /* Add more space below each row */
+  margin-bottom: 1rem;
 }
 
-.input-field,
-.select-input {
-  flex: 1;
-  padding: 12px; /* Add some padding for a consistent feel */
+.form-label {
+  font-weight: 600;
+  /* Let labels shrink or wrap if space is limited */
+  min-width: 100px; 
+  color: #343a40;
+  text-align: right; 
+}
+
+.select-input,
+.short-input {
+  flex: 1;           /* Let them grow if space is available */
+  min-width: 100px;  /* Minimum width for smaller screens */
+  padding: 8px 12px;
   border: 1px solid #ddd;
-  border-radius: 5px;
+  border-radius: 4px;
 }
 
-.action-btn {
-  padding: 10px 15px; /* Reduced padding for compactness */
-  font-size: 1rem; /* Adjusted font size */
-  width: auto; /* Set to auto for adaptive width */
-}
-
+/* The button row (Add Exercise or Update Exercise) */
 .button-group {
   display: flex;
-  gap: 10px; /* Space between buttons */
-  justify-content: flex-start; /* Align buttons left to prevent excessive spacing */
+  gap: 1rem;
 }
 
-.action-btn:hover {
+/* Make the Add/Update Exercise button smaller */
+.button-group button {
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 4px;
+  background: #007bff;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  width: fit-content;  /* Button shrinks to fit its text */
+}
+
+.button-group button:hover {
+  background: #0056b3;
+}
+
+/* Current Exercises Section */
+.current-workout-summary h4 {
+  margin: 1rem 0 0.5rem;
+  font-size: 1.1rem;
+  color: #343a40;
+}
+
+.current-workout-summary ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.current-workout-summary li {
+  margin-bottom: 0.5rem;
+}
+
+/* Save/Update Workout Button */
+.upload-workout-container form > button[type="submit"] {
+  padding: 8px 16px;
+  font-size: 1rem;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background 0.3s ease;
+}
+
+.upload-workout-container form > button[type="submit"]:hover {
   background: #0056b3;
 }

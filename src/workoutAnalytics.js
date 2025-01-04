@@ -233,8 +233,11 @@ const WorkoutAnalytics = ({ workouts }) => {
   };
 
   return (
-    <div className="analytics-container">
-      <h3>Workout Analytics</h3>
+    <div>
+      <div className="analytics-title-container">
+        <h3 className="analytics-title">Workout Analytics</h3>
+      </div>
+      <div className="analytics-container">
       <p>
         <strong>Workout Frequency:</strong> {analytics.workoutFrequency}
       </p>
@@ -259,6 +262,7 @@ const WorkoutAnalytics = ({ workouts }) => {
           </div>
         </div>
       ))}
+    </div>
     </div>
   );
 };

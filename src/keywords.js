@@ -1,7 +1,7 @@
 // src/keywords.js
 const keywords = [
   "Chest", "Back", "Legs", "Shoulders", "Arms", "Biceps", "Triceps", "Abs", 
-  "Core", "Glutes", "Hamstrings", "Quadriceps", "Calves", "Forearms", 
+  "Core", "Glutes", "Hamstrings", "Quadriceps", "Calves", "Forearms", "Legs", "Leg",
   "Deltoids", "Lats", "Strength", "Cardio", "Endurance", "Flexibility", 
   "HIIT", "Pilates", "Yoga", "CrossFit", "Aerobics", "Bodybuilding", 
   "Powerlifting", "Stretching", "Resistance Training", "Calisthenics", 
