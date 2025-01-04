@@ -1,13 +1,13 @@
 A Fitness Tracker Website built to learn and use Amazon Web Services and its various offerings.  
   
-Functionalities (04/12):  
+Functionalities (04/01):  
 - Account creation with email
 - Sign-in and sign-out
 - Adding a workout to DB
 - View Past workouts
 - Chat with chatbot about fitness and workouts, while filtering for topics relevant to fitness
 - Option to delete and modify past workouts
-- Workout Analytics
+- Simple Workout Analytics
   
   
 Technologies Used:  
@@ -23,6 +23,5 @@ Technologies Used:
 
 To be Implemented:
 - Implementing creation of and logging in with username 
-- Improve UI/UX (Size of Buttons)
 - Workout Suggestions with ML
 - Host on custom domain with Route 53
