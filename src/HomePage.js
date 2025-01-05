@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+
 import UploadWorkout from "./uploadWorkout";
 import GetWorkouts from "./getWorkouts";
 import WorkoutAnalytics from "./workoutAnalytics";
@@ -12,15 +14,46 @@ const HomePage = ({ onLogout }) => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [workouts, setWorkouts] = useState([]);
 
-  // Modified here to also switch to the "uploadWorkout" tab after setting the editingWorkout
-  const handleEditWorkout = (workout) => {
-    setEditingWorkout(workout);
-    setActiveTab("uploadWorkout"); // <-- This line ensures the tab switches.
+  // Whenever we need to refresh (or on initial mount), fetch the workouts
+  useEffect(() => {
+    fetchAllWorkouts();
+  }, [refreshTrigger]);
+
+  const fetchAllWorkouts = async () => {
+    const email = localStorage.getItem("email");
+    if (!email) {
+      console.error("No user email found in localStorage.");
+      return;
+    }
+
+    try {
+      // Your existing API endpoint
+      const response = await axios.get(
+        "https://6a29no5ke5.execute-api.us-east-1.amazonaws.com/workoutStage1/GetPastWorkouts",
+        { params: { email } }
+      );
+
+      if (response.data && Array.isArray(response.data)) {
+        // Sort or transform if desired
+        setWorkouts(response.data);
+      } else {
+        console.error("Invalid workout data format:", response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching workouts:", error);
+    }
   };
 
+  // Switch to "uploadWorkout" tab after editing
+  const handleEditWorkout = (workout) => {
+    setEditingWorkout(workout);
+    setActiveTab("uploadWorkout");
+  };
+
+  // After saving, increment refreshTrigger to re-fetch
   const handleWorkoutSave = () => {
     setEditingWorkout(null);
-    setRefreshTrigger(refreshTrigger + 1); // Refresh the list after saving
+    setRefreshTrigger((prev) => prev + 1); 
   };
 
   return (
@@ -63,9 +96,10 @@ const HomePage = ({ onLogout }) => {
         )}
         {activeTab === "viewWorkouts" && (
           <GetWorkouts
-            refreshTrigger={refreshTrigger}
+            // We no longer fetch inside this component
+            // We just pass the workouts down for display
+            workouts={workouts}
             onEditWorkout={handleEditWorkout}
-            setWorkouts={setWorkouts} // Pass workouts to HomePage state
           />
         )}
         {activeTab === "analytics" && <WorkoutAnalytics workouts={workouts} />}

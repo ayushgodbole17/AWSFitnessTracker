@@ -1,57 +1,25 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 import { toast } from "react-toastify";
 import "./getWorkouts.css";
+import axios from "axios";
 
-const GetWorkouts = ({ refreshTrigger, onEditWorkout, setWorkouts }) => {
-  const [workouts, setWorkoutList] = useState([]);
-  const [loading, setLoading] = useState(false);
+const GetWorkouts = ({ workouts, onEditWorkout, onDeleteSuccess }) => {
+  // We store only the expanded workout ID locally
   const [expandedWorkout, setExpandedWorkout] = useState(null);
 
-  // Fetch user's workouts from API
-  const fetchWorkouts = async () => {
-    const email = localStorage.getItem("email");
-    if (!email) {
-      toast.error("You are not authenticated. Please log in again.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      console.log("Fetching workouts for email:", email);
-      const response = await axios.get(
-        "https://6a29no5ke5.execute-api.us-east-1.amazonaws.com/workoutStage1/GetPastWorkouts",
-        { params: { email } }
-      );
-      console.log("Fetched workouts:", response.data);
-
-      // Sort workouts by date (newest first)
-      const sortedWorkouts = [...(response.data || [])].sort((a, b) => {
-        // If a date is missing, keep it at the bottom
-        if (!a.workoutDate) return 1;
-        if (!b.workoutDate) return -1;
-        return new Date(b.workoutDate) - new Date(a.workoutDate);
-      });
-
-      // Update local state (for display) and parent state (for analytics)
-      setWorkoutList(sortedWorkouts);
-      setWorkouts(sortedWorkouts);
-    } catch (error) {
-      console.error("Error fetching workouts:", error);
-      toast.error("Failed to fetch workouts. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+  // Expand/Collapse a workout’s details
+  const toggleExpandWorkout = (workoutID) => {
+    setExpandedWorkout((prev) => (prev === workoutID ? null : workoutID));
   };
 
-  // Delete a workout
+  // Optional: If you still want to delete workouts here, we can do it locally,
+  // then call onDeleteSuccess() in the parent to re-fetch or remove from parent’s state.
   const handleDeleteWorkout = async (workoutID) => {
     const userID = localStorage.getItem("email");
     if (!userID) {
       toast.error("You are not authenticated. Please log in again.");
       return;
     }
-
     if (!window.confirm("Are you sure you want to delete this workout?")) return;
 
     try {
@@ -59,31 +27,20 @@ const GetWorkouts = ({ refreshTrigger, onEditWorkout, setWorkouts }) => {
       await axios.delete(
         "https://6a29no5ke5.execute-api.us-east-1.amazonaws.com/workoutStage1/deleteWorkout",
         {
-          params: {
-            workoutID,
-            userID,
-          },
+          params: { workoutID, userID },
         }
       );
       toast.success("Workout deleted successfully.");
-      // Refetch workouts to update the list
-      fetchWorkouts();
+
+      // Option 1: Call parent’s success callback so it can refetch or update its state
+      if (typeof onDeleteSuccess === "function") {
+        onDeleteSuccess();
+      }
     } catch (error) {
       console.error("Error deleting workout:", error.response || error);
       toast.error("Failed to delete workout. Please try again.");
     }
   };
-
-  // Expand/Collapse a workout’s details
-  const toggleExpandWorkout = (workoutID) => {
-    setExpandedWorkout((prev) => (prev === workoutID ? null : workoutID));
-  };
-
-  // Fetch workouts whenever refreshTrigger changes
-  useEffect(() => {
-    fetchWorkouts();
-    // eslint-disable-next-line
-  }, [refreshTrigger]);
 
   return (
     <div className="main-container">
@@ -94,9 +51,7 @@ const GetWorkouts = ({ refreshTrigger, onEditWorkout, setWorkouts }) => {
 
       {/* Past Workouts */}
       <div className="workouts-container">
-        {loading ? (
-          <div className="loading">Loading...</div>
-        ) : workouts.length > 0 ? (
+        {workouts && workouts.length > 0 ? (
           <ul className="workout-list">
             {workouts.map((workout) => (
               <li key={workout.workoutID} className="workout-item">
@@ -111,6 +66,7 @@ const GetWorkouts = ({ refreshTrigger, onEditWorkout, setWorkouts }) => {
                       : "Unknown Date"}
                   </h4>
                 </div>
+                {/* Expand workout details if this workout is expanded */}
                 {expandedWorkout === workout.workoutID && (
                   <ul className="exercise-list">
                     {(workout.exercises || []).map((exercise, index) => (
