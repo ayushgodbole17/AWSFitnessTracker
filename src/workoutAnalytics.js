@@ -238,9 +238,8 @@ const WorkoutAnalytics = ({ workouts }) => {
         <h3 className="analytics-title">Workout Analytics</h3>
       </div>
       <div className="analytics-container">
-      <p>
-        <strong>Workout Frequency:</strong> {analytics.workoutFrequency}
-      </p>
+      
+      
       {Object.keys(analytics.muscleGroupAnalytics).map((muscleGroup) => (
         <div key={muscleGroup} className="muscle-group-section">
           <h4>{muscleGroup}</h4>
