@@ -8,6 +8,7 @@ const GetWorkouts = ({ refreshTrigger, onEditWorkout, setWorkouts }) => {
   const [loading, setLoading] = useState(false);
   const [expandedWorkout, setExpandedWorkout] = useState(null);
 
+  // Fetch user's workouts from API
   const fetchWorkouts = async () => {
     const email = localStorage.getItem("email");
     if (!email) {
@@ -19,21 +20,22 @@ const GetWorkouts = ({ refreshTrigger, onEditWorkout, setWorkouts }) => {
     try {
       console.log("Fetching workouts for email:", email);
       const response = await axios.get(
-        `https://6a29no5ke5.execute-api.us-east-1.amazonaws.com/workoutStage1/GetPastWorkouts`,
+        "https://6a29no5ke5.execute-api.us-east-1.amazonaws.com/workoutStage1/GetPastWorkouts",
         { params: { email } }
       );
       console.log("Fetched workouts:", response.data);
 
-      // Sort workouts by date (newest first) before saving to state
+      // Sort workouts by date (newest first)
       const sortedWorkouts = [...(response.data || [])].sort((a, b) => {
-        // If one of them has no date, it stays at the bottom
-        if (!a.workoutDate) return 1; 
+        // If a date is missing, keep it at the bottom
+        if (!a.workoutDate) return 1;
         if (!b.workoutDate) return -1;
         return new Date(b.workoutDate) - new Date(a.workoutDate);
       });
 
+      // Update local state (for display) and parent state (for analytics)
       setWorkoutList(sortedWorkouts);
-      setWorkouts(sortedWorkouts); // Update parent state
+      setWorkouts(sortedWorkouts);
     } catch (error) {
       console.error("Error fetching workouts:", error);
       toast.error("Failed to fetch workouts. Please try again.");
@@ -42,6 +44,7 @@ const GetWorkouts = ({ refreshTrigger, onEditWorkout, setWorkouts }) => {
     }
   };
 
+  // Delete a workout
   const handleDeleteWorkout = async (workoutID) => {
     const userID = localStorage.getItem("email");
     if (!userID) {
@@ -53,8 +56,8 @@ const GetWorkouts = ({ refreshTrigger, onEditWorkout, setWorkouts }) => {
 
     try {
       console.log("Deleting workout with ID:", workoutID, "for user:", userID);
-      const response = await axios.delete(
-        `https://6a29no5ke5.execute-api.us-east-1.amazonaws.com/workoutStage1/deleteWorkout`,
+      await axios.delete(
+        "https://6a29no5ke5.execute-api.us-east-1.amazonaws.com/workoutStage1/deleteWorkout",
         {
           params: {
             workoutID,
@@ -62,8 +65,8 @@ const GetWorkouts = ({ refreshTrigger, onEditWorkout, setWorkouts }) => {
           },
         }
       );
-      console.log("Workout deleted successfully:", response.data);
       toast.success("Workout deleted successfully.");
+      // Refetch workouts to update the list
       fetchWorkouts();
     } catch (error) {
       console.error("Error deleting workout:", error.response || error);
@@ -71,14 +74,12 @@ const GetWorkouts = ({ refreshTrigger, onEditWorkout, setWorkouts }) => {
     }
   };
 
+  // Expand/Collapse a workout’s details
   const toggleExpandWorkout = (workoutID) => {
-    if (expandedWorkout === workoutID) {
-      setExpandedWorkout(null); // Collapse if clicked again
-    } else {
-      setExpandedWorkout(workoutID); // Expand if clicked
-    }
+    setExpandedWorkout((prev) => (prev === workoutID ? null : workoutID));
   };
 
+  // Fetch workouts whenever refreshTrigger changes
   useEffect(() => {
     fetchWorkouts();
     // eslint-disable-next-line
@@ -112,10 +113,11 @@ const GetWorkouts = ({ refreshTrigger, onEditWorkout, setWorkouts }) => {
                 </div>
                 {expandedWorkout === workout.workoutID && (
                   <ul className="exercise-list">
-                    {workout.exercises.map((exercise, index) => (
+                    {(workout.exercises || []).map((exercise, index) => (
                       <li key={index} className="exercise-item">
-                        <strong>{exercise.exercise}</strong> - {exercise.sets} sets of{" "}
-                        {exercise.reps} reps at {exercise.weight} {exercise.weightType} (
+                        <strong>{exercise.exercise}</strong> - {exercise.sets}{" "}
+                        sets of {exercise.reps} reps at {exercise.weight}{" "}
+                        {exercise.weightType} (
                         {exercise.isAssistance ? "Assisted" : "Regular"})
                       </li>
                     ))}

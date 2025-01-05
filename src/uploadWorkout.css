@@ -82,6 +82,7 @@
 }
 
 /* Make the Add/Update Exercise button smaller */
+/* Adjust button-group buttons */
 .button-group button {
   padding: 6px 12px;
   font-size: 0.9rem;
@@ -90,13 +91,14 @@
   background: #007bff;
   color: #ffffff;
   cursor: pointer;
-  transition: background 0.3s ease;
-  width: fit-content;  /* Button shrinks to fit its text */
+  transition: background 0.3s ease, transform 0.3s ease-in-out;
 }
 
 .button-group button:hover {
   background: #0056b3;
+  transform: scale(1.02); /* Consistent hover effect */
 }
+
 
 /* Current Exercises Section */
 .current-workout-summary h4 {

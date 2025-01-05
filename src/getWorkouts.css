@@ -94,7 +94,8 @@
 }
 
 /* Buttons used within the workouts container */
-button {
+/* Scope button styles to the workouts container */
+.workouts-container button {
   margin-right: 5px;
   background-color: #007bff;
   color: white;
@@ -105,6 +106,7 @@ button {
   cursor: pointer;
   transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
+
 
 button:hover {
   background-color: #0056b3;

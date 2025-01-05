@@ -73,7 +73,7 @@ const HomePage = ({ onLogout }) => {
 
       {/* Chatbot Section */}
       <div className="chatbot-container">
-        <Chatbot />
+        <Chatbot workouts={workouts} />
       </div>
     </div>
   );

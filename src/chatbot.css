@@ -6,79 +6,104 @@
   width: 300px; /* Default width */
   max-height: 500px;
   border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 10px; /* Rounded corners for modern look */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Soft shadow for elevation */
   background-color: #ffffff;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   z-index: 1000;
-  transition: all 0.3s ease-in-out; /* Smooth transition for resizing */
+  transition: all 0.3s ease-in-out; /* Smooth resizing transitions */
 }
 
 .chat-widget-expanded {
-  width: 600px; /* Expanded width when open */
+  width: 50%; /* Adjusted for responsiveness */
+  max-width: 500px; /* Limit maximum width */
 }
 
+/* Header Styling */
 .chat-header {
-  background-color: #4a90e2;
+  background-color: #007bff;
   color: white;
-  padding: 10px;
+  padding: 10px 15px;
   font-size: 1.2rem;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: space-between; /* Space between title and close button */
+  align-items: center; /* Center items vertically */
   cursor: pointer;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.chat-header:hover {
+  background-color: #0056b3; /* Subtle hover effect */
 }
 
 .chat-title {
-  font-size: 1.2rem;
   font-weight: bold;
+  font-size: 1.2rem;
 }
 
-.close-btn {
-  font-size: 1.5rem;
-  padding: 5px;
+/* Close Button */
+.chat-header .close-btn {
+  all: unset; /* Reset inherited styles */
+  font-size: 0.9rem; /* Adjust size */
+  padding: 2px 6px; /* Reduce padding for better proportions */
   background-color: transparent;
   color: white;
   border: none;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease-in-out;
 }
 
+.chat-header .close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+}
+
+/* Chat Body */
 .chat-body {
   flex-grow: 1;
   padding: 15px;
-  overflow-y: auto; /* Allow scrolling for long content */
-  font-size: 1.1rem;
-  white-space: pre-wrap; /* Preserve line breaks */
-  word-wrap: break-word; /* Ensure long words wrap */
-  max-height: 400px; /* Allow scrolling within this area */
+  overflow-y: auto;
+  font-size: 1rem;
+  max-height: 400px;
 }
 
 .chat-history {
-  max-height: 350px; /* Set a maximum height */
-  overflow-y: auto; /* Allow scrolling when necessary */
+  max-height: 350px;
+  overflow-y: auto;
+  margin-bottom: 10px;
 }
 
 .chat-bubble {
   padding: 10px 15px;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-bottom: 10px;
+  max-width: 90%; /* Prevent bubbles from spanning full width */
+  white-space: pre-wrap; /* Preserve line breaks */
+  word-wrap: break-word; /* Handle long text wrapping */
+}
+
+.chat-bubble.user {
   background-color: #f1f1f1;
   color: #333;
-  max-width: 90%; /* Prevent bubbles from spanning full width */
-  white-space: pre-wrap; /* Preserve formatting */
-  word-wrap: break-word; /* Handle long unbroken text */
+  align-self: flex-end; /* Align user messages to the right */
 }
 
 .chat-bubble.bot {
-  background-color: #e6f7ff; /* Blue for bot messages */
+  background-color: #e6f7ff;
+  color: #007bff;
 }
 
+/* Chat Input */
 .chat-input-container {
   padding: 10px;
   border-top: 1px solid #ddd;
   display: flex;
+  gap: 10px;
 }
 
 .chat-input {
@@ -86,20 +111,30 @@
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  margin-right: 10px;
   font-size: 1rem;
 }
 
+.chat-input:focus {
+  border-color: #007bff; /* Highlight on focus */
+  outline: none;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.5); /* Subtle glow effect */
+}
+
 .chat-send-btn {
-  padding: 10px;
-  background-color: #4a90e2;
+  padding: 10px 15px;
+  background-color: #007bff;
   color: #fff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.3s ease-in-out;
+  transition: background-color 0.3s ease-in-out;
 }
 
 .chat-send-btn:hover {
-  background-color: #357ab8; /* Hover effect */
+  background-color: #0056b3;
+}
+
+.chat-send-btn:disabled {
+  background-color: #cccccc; /* Disabled state */
+  cursor: not-allowed;
 }
