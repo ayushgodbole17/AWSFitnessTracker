@@ -31,7 +31,8 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Chest Press Machine",
       "Cable Crossovers",
       "Incline Cable Crossovers",
-      "Decline Cable Crossovers"
+      "Decline Cable Crossovers",
+      "Pec Deck"
     ],
     Legs: [
       "Squats",
@@ -79,12 +80,15 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Tricep Press Machine",
       "Cable Overhead Tricep Extensions",
       "Tricep Pulldown Rope",
+      "Tricep Pulldown Rope Single-Arm",
       "Dumbbell Kickbacks",
       "Cable Kickbacks",
       "Skullcrushers",
       "Bicep Curls Dumbbell",
       "Bicep Curls Barbell",
       "Bicep Curls Cable",
+      "Bicep Curls Cable Non-Machine",
+      "Reverse Curls Cable Non-Machine",
       "Reverse Curls Cable",
       "Reverse Curls Dumbbell",
       "Reverse Curls Barbell",
@@ -97,6 +101,7 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Shoulder Press Dumbbell",
       "Shoulder Press Barbell",
       "Lateral Raises",
+      "Cable Lateral Raises",
       "Face Pulls",
       "Rotator Cuff Band",
       "External Rotation Horizontal",

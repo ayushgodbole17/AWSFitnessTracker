@@ -42,6 +42,11 @@ const GetWorkouts = ({ workouts, onEditWorkout, onDeleteSuccess }) => {
     }
   };
 
+  // Sort workouts by date in descending order (most recent first)
+  const sortedWorkouts = workouts
+    ? [...workouts].sort((a, b) => new Date(b.workoutDate) - new Date(a.workoutDate))
+    : [];
+
   return (
     <div className="main-container">
       {/* Section Heading */}
@@ -51,9 +56,9 @@ const GetWorkouts = ({ workouts, onEditWorkout, onDeleteSuccess }) => {
 
       {/* Past Workouts */}
       <div className="workouts-container">
-        {workouts && workouts.length > 0 ? (
+        {sortedWorkouts && sortedWorkouts.length > 0 ? (
           <ul className="workout-list">
-            {workouts.map((workout) => (
+            {sortedWorkouts.map((workout) => (
               <li key={workout.workoutID} className="workout-item">
                 <div
                   className="workout-header"
