@@ -50,7 +50,7 @@
 }
 
 /* Common Button Styling */
-button {
+.login-container button {
   flex: 1;
   padding: 12px;
   font-size: 1.2rem;
@@ -63,7 +63,7 @@ button {
   transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
 }
 
-button:hover {
+.login-container button:hover {
   background-color: #0056b3;
   transform: scale(1.05);
 }

@@ -23,24 +23,27 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
   const exercisesList = {
     Chest: [
       "Pushups",
-      "Assisted Dips",
+      "Deep Pushups",
+      "Dips",
       "Dumbbell Bench Press",
       "Dumbbell Incline Press",
       "Barbell Bench Press",
       "Barbell Incline Press",
       "Chest Press Machine",
+      "Chest Press",
       "Cable Crossovers",
       "Incline Cable Crossovers",
       "Decline Cable Crossovers",
       "Pec Deck"
     ],
     Legs: [
-      "Squats",
+      "Barbell Squats",
+      "Smith Machine Squats",
       "Hack Squat",
       "Leg Press",
       "Leg Extensions",
       "Deadlifts",
-      "Hamstring Curls",
+      "Seated Hamstring Curls",
       "Lying Hamstring Curl",
       "Smith Machine Goodmornings",
       "Romanian Deadlifts",
@@ -93,6 +96,10 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Reverse Curls Dumbbell",
       "Reverse Curls Barbell",
       "Hammer Curls Dumbbell",
+      "Preacher Curls",
+      "Preacher Curls Dumbbell",
+      "Preacher Curls Cable",
+      "Reverse Preacher Curls",
       "Forearm Curls Pronated",
       "Forearm Curls Supinated"
     ],
@@ -117,13 +124,45 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
   const weightTypes = ["kg", "machine"];
 
   useEffect(() => {
+    // Load current workout from local storage on mount
+    const storedWorkout = localStorage.getItem("currentWorkout");
+    if (storedWorkout) {
+      const parsedWorkout = JSON.parse(storedWorkout);
+      setWorkoutName(parsedWorkout.workoutName || "");
+      setWorkoutDate(parsedWorkout.workoutDate || "");
+      setExercises(parsedWorkout.exercises || []);
+      setCurrentExercise(parsedWorkout.currentExercise || {
+        muscleGroup: "",
+        exercise: "",
+        sets: "",
+        reps: "",
+        weight: "",
+        weightType: "kg",
+        isAssistance: false,
+      });
+      console.log("Loaded workout from local storage:", parsedWorkout);
+    }
+  }, []);
+
+  useEffect(() => {
     if (editingWorkout) {
-      console.log("Editing workout:", editingWorkout);
       setWorkoutName(editingWorkout.workoutName || "");
       setWorkoutDate(editingWorkout.workoutDate || "");
       setExercises(editingWorkout.exercises || []);
     }
   }, [editingWorkout]);
+
+  // Save current workout data to local storage whenever it changes
+  useEffect(() => {
+    const currentWorkoutData = {
+      workoutName,
+      workoutDate,
+      exercises,
+      currentExercise,
+    };
+    localStorage.setItem("currentWorkout", JSON.stringify(currentWorkoutData));
+    console.log("Saved workout to local storage:", currentWorkoutData);
+  }, [workoutName, workoutDate, exercises, currentExercise]);
 
   const resetForm = () => {
     setWorkoutName("");
@@ -139,6 +178,7 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       isAssistance: false,
     });
     setEditIndex(null);
+    localStorage.removeItem("currentWorkout"); // Clear the local storage when resetting the form
   };
 
   const handleInputChange = (field, value) => {
@@ -261,8 +301,8 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
             required
           />
         </div>
-  
-        {/* Exercise Info Section (removed the .exercise-card wrapper) */}
+
+        {/* Exercise Info Section */}
         <h4>{editIndex !== null ? "Edit Exercise" : "Add Exercise"}</h4>
         <div className="exercise-input-row">
           <label className="form-label">Muscle Group:</label>
@@ -278,7 +318,7 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
               </option>
             ))}
           </select>
-  
+
           <label className="form-label">Exercise:</label>
           <select
             value={currentExercise.exercise}
@@ -295,7 +335,7 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
               ))}
           </select>
         </div>
-  
+
         <div className="exercise-input-row">
           <label className="form-label">Sets:</label>
           <input
@@ -305,7 +345,7 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
             onChange={(e) => handleInputChange("sets", e.target.value)}
             className="short-input"
           />
-  
+
           <label className="form-label">Reps:</label>
           <input
             type="number"
@@ -314,7 +354,7 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
             onChange={(e) => handleInputChange("reps", e.target.value)}
             className="short-input"
           />
-  
+
           <label className="form-label">Weight:</label>
           <input
             type="number"
@@ -324,7 +364,7 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
             className="short-input"
           />
         </div>
-  
+
         <div className="exercise-input-row">
           <label className="form-label">Weight Type:</label>
           <select
@@ -338,7 +378,7 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
               </option>
             ))}
           </select>
-  
+
           <label className="form-label">Assistance:</label>
           <select
             value={currentExercise.isAssistance}
@@ -351,13 +391,13 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
             <option value="true">Assisted</option>
           </select>
         </div>
-  
+
         <div className="button-group">
           <button type="button" onClick={addOrUpdateExercise}>
             {editIndex !== null ? "Update Exercise" : "Add Exercise"}
           </button>
         </div>
-  
+
         {/* Current Exercises */}
         <div className="current-workout-summary">
           <h4>Current Exercises</h4>
@@ -379,14 +419,13 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
             </ul>
           )}
         </div>
-  
+
         <button type="submit">
           {editingWorkout ? "Update Workout" : "Save Workout"}
         </button>
       </form>
     </div>
   );
-  
 };
 
 export default UploadWorkout;
