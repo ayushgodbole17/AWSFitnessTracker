@@ -43,46 +43,48 @@ const WorkoutAnalytics = ({ workouts }) => {
   // 1) Standard local analytics (volume data, muscle group analysis, etc.)
   // -------------------------------------------------------------------
   const analyzeWorkouts = () => {
-    let volumeData = {};
+    let avgVolumeData = {}; // Stores average volume per set per exercise per workout
     let maxWeightData = {};
-
+  
     const pullChinExercises = [
       "Pull Ups",
       "Assisted Pull Ups",
       "Chin Ups",
       "Assisted Chin-Ups",
     ];
-
-    // Sort workouts by date to ensure calculations are done in correct order
+  
+    // Sort workouts chronologically
     const sortedWorkouts = [...workouts].sort(
       (a, b) => new Date(a.workoutDate) - new Date(b.workoutDate)
     );
-
+  
+    // Process each workout to aggregate average volume per set and max weight per exercise
     sortedWorkouts.forEach((workout) => {
-      const aggregatedVolume = {};
+      const aggregatedData = {}; // key will map to { totalVolume, totalSets }
       const maxWeightByExercise = {};
-
+  
       workout.exercises.forEach((exercise) => {
         let key = `${exercise.muscleGroup}-${exercise.exercise}`;
-
-        // Group all chin/pull-ups under one label
+  
+        // Group similar exercises (e.g., pull-ups and chin-ups under one key)
         if (
           exercise.muscleGroup === "Back" &&
           pullChinExercises.includes(exercise.exercise)
         ) {
           key = "Back-Pull Up + Chin-Up";
         }
-
-        // Calculate volume
-        const volume = exercise.sets * exercise.reps * Math.abs(exercise.weight);
-
-        // Aggregate volume data for the day
-        if (!aggregatedVolume[key]) {
-          aggregatedVolume[key] = 0;
+  
+        // Calculate overall volume for this exercise entry
+        const totalVolume = exercise.sets * exercise.reps * Math.abs(exercise.weight);
+        const totalSets = exercise.sets;
+  
+        if (!aggregatedData[key]) {
+          aggregatedData[key] = { totalVolume: 0, totalSets: 0 };
         }
-        aggregatedVolume[key] += volume;
-
-        // Track the max weight lifted for each exercise
+        aggregatedData[key].totalVolume += totalVolume;
+        aggregatedData[key].totalSets += totalSets;
+  
+        // Track max weight lifted (remains unchanged)
         if (!maxWeightByExercise[key]) {
           maxWeightByExercise[key] = exercise.weight;
         } else {
@@ -92,17 +94,20 @@ const WorkoutAnalytics = ({ workouts }) => {
           );
         }
       });
-
-      // Store the aggregated volume and max weight data
-      Object.keys(aggregatedVolume).forEach((key) => {
-        if (!volumeData[key]) {
-          volumeData[key] = [];
+  
+      // For each exercise key, calculate the average volume per set
+      Object.keys(aggregatedData).forEach((key) => {
+        const { totalVolume, totalSets } = aggregatedData[key];
+        const avgVolume = totalSets > 0 ? totalVolume / totalSets : 0;
+        if (!avgVolumeData[key]) {
+          avgVolumeData[key] = [];
         }
-        volumeData[key].push({
+        avgVolumeData[key].push({
           date: new Date(workout.workoutDate),
-          volume: aggregatedVolume[key],
+          avgVolume,
         });
-
+  
+        // Save max weight info (unchanged)
         if (maxWeightByExercise[key] !== undefined) {
           if (!maxWeightData[key]) {
             maxWeightData[key] = [];
@@ -114,155 +119,103 @@ const WorkoutAnalytics = ({ workouts }) => {
         }
       });
     });
-
-    // Calculate workout frequency
+  
+    // Calculate workout frequency information
     const totalWorkouts = sortedWorkouts.length;
     const uniqueDates = [
       ...new Set(sortedWorkouts.map((workout) => workout.workoutDate)),
     ];
     const workoutFrequency = `You worked out on ${totalWorkouts} days, covering ${uniqueDates.length} unique days.`;
-
-    // Build muscleGroupAnalytics object
+  
+    // Build analytics grouped by muscle group and exercise, using average volume per set
     const muscleGroupAnalytics = {};
-    Object.keys(volumeData).forEach((exerciseKey) => {
+    Object.keys(avgVolumeData).forEach((exerciseKey) => {
       const [muscleGroup, exerciseName] = exerciseKey.split("-");
-      const volumeEntries = volumeData[exerciseKey];
-      const weightEntries = maxWeightData[exerciseKey] || [];
-      volumeEntries.sort((a, b) => a.date - b.date);
-      weightEntries.sort((a, b) => a.date - b.date);
-
+      const entries = avgVolumeData[exerciseKey];
+      entries.sort((a, b) => a.date - b.date);
+  
       if (!muscleGroupAnalytics[muscleGroup]) {
         muscleGroupAnalytics[muscleGroup] = { exercises: {} };
       }
-
-      const uniqueWorkoutDays = new Set(
-        volumeEntries.map((entry) => entry.date.toDateString())
-      ).size;
-
-      // Initialize analytics for the exercise
       if (!muscleGroupAnalytics[muscleGroup].exercises[exerciseName]) {
-        muscleGroupAnalytics[muscleGroup].exercises[exerciseName] = {
-          metrics: [],
-        };
+        muscleGroupAnalytics[muscleGroup].exercises[exerciseName] = { metrics: [] };
       }
-
-      // Volume Analysis
-      if (volumeEntries.length > 1 && uniqueWorkoutDays > 1) {
-        const initialVolume = volumeEntries[0].volume;
-        const finalVolume = volumeEntries[volumeEntries.length - 1].volume;
-        let volumeIncrease;
-        if (initialVolume < 0) {
-          volumeIncrease =
-            ((Math.abs(initialVolume) - Math.abs(finalVolume)) /
-              Math.abs(initialVolume)) *
-            100;
-        } else {
-          volumeIncrease =
-            ((finalVolume - initialVolume) / initialVolume) * 100;
-        }
-
-        muscleGroupAnalytics[muscleGroup].exercises[exerciseName].metrics.push(
-          `• Volume increase since first workout: ${volumeIncrease.toFixed(
+      const metrics = muscleGroupAnalytics[muscleGroup].exercises[exerciseName].metrics;
+  
+      if (entries.length > 1) {
+        const initialAvg = entries[0].avgVolume;
+        const latestAvg = entries[entries.length - 1].avgVolume;
+        const overallChange =
+          initialAvg === 0 ? latestAvg * 100 : ((latestAvg - initialAvg) / initialAvg) * 100;
+        metrics.push(
+          `• Average volume per set changed from ${initialAvg.toFixed(
             2
-          )}% (${initialVolume} vs ${finalVolume})`
+          )} to ${latestAvg.toFixed(2)} (a change of ${overallChange.toFixed(2)}%).`
         );
-
-        if (uniqueWorkoutDays === 2) {
-          muscleGroupAnalytics[muscleGroup].exercises[exerciseName].metrics.push(
-            `• Average volume increase over all workouts: ${volumeIncrease.toFixed(
-              2
-            )}% (calculated over ${uniqueWorkoutDays} unique workout days)`
-          );
-          muscleGroupAnalytics[muscleGroup].exercises[exerciseName].metrics.push(
-            `• Volume increase since last workout: ${volumeIncrease.toFixed(
-              2
-            )}% (${initialVolume} vs ${finalVolume})`
-          );
-        } else {
-          // Average Percentage Increase
-          let totalPercentageIncrease = 0;
-          let count = 0;
-          for (let i = 1; i < volumeEntries.length; i++) {
-            const prevVol = volumeEntries[i - 1].volume;
-            const currVol = volumeEntries[i].volume;
-            let percentageChange;
-            if (prevVol < 0) {
-              percentageChange =
-                ((Math.abs(prevVol) - Math.abs(currVol)) / Math.abs(prevVol)) *
-                100;
-            } else {
-              percentageChange = ((currVol - prevVol) / prevVol) * 100;
-            }
-            totalPercentageIncrease += percentageChange;
-            count++;
-          }
-          const averageVolumeIncrease = count > 0 ? totalPercentageIncrease / count : 0;
-          muscleGroupAnalytics[muscleGroup].exercises[exerciseName].metrics.push(
-            `• Average volume increase over all workouts: ${averageVolumeIncrease.toFixed(
-              2
-            )}% (calculated over ${uniqueWorkoutDays} unique workout days)`
-          );
-
-          // Recent Workout Volume Increase
-          const previousVolume =
-            volumeEntries[volumeEntries.length - 2].volume;
-          const recentVolume = volumeEntries[volumeEntries.length - 1].volume;
-          let recentIncrease;
-          if (previousVolume < 0) {
-            recentIncrease =
-              ((Math.abs(previousVolume) - Math.abs(recentVolume)) /
-                Math.abs(previousVolume)) *
-              100;
-          } else {
-            recentIncrease =
-              ((recentVolume - previousVolume) / previousVolume) * 100;
-          }
-          muscleGroupAnalytics[muscleGroup].exercises[exerciseName].metrics.push(
-            `• Volume increase since last workout: ${recentIncrease.toFixed(
-              2
-            )}% (${previousVolume} vs ${recentVolume})`
-          );
+  
+        // Calculate the average percentage change between consecutive workouts
+        let totalPercChange = 0;
+        let count = 0;
+        for (let i = 1; i < entries.length; i++) {
+          const prev = entries[i - 1].avgVolume;
+          const curr = entries[i].avgVolume;
+          const change = prev === 0 ? curr * 100 : ((curr - prev) / prev) * 100;
+          totalPercChange += change;
+          count++;
         }
+        const avgPercChange = count > 0 ? totalPercChange / count : 0;
+        metrics.push(
+          `• Average change between workouts: ${avgPercChange.toFixed(2)}%.`
+        );
+  
+        // Recent change between the last two workouts
+        const previousAvg = entries[entries.length - 2].avgVolume;
+        const recentAvg = entries[entries.length - 1].avgVolume;
+        const recentChange =
+          previousAvg === 0 ? recentAvg * 100 : ((recentAvg - previousAvg) / previousAvg) * 100;
+        metrics.push(
+          `• Change since last workout: ${recentChange.toFixed(2)}% (from ${previousAvg.toFixed(
+            2
+          )} to ${recentAvg.toFixed(2)}).`
+        );
       } else {
-        muscleGroupAnalytics[muscleGroup].exercises[exerciseName].metrics.push(
-          `• Analytics for volume of ${exerciseName} are unavailable due to insufficient data.`
+        metrics.push(
+          `• Not enough data to analyze average volume per set for ${exerciseName}.`
         );
       }
-
-      // Max Weight Analysis
+  
+      // Max Weight Analysis (retained for reference)
+      const weightEntries = maxWeightData[exerciseKey] || [];
       if (weightEntries.length > 1) {
+        weightEntries.sort((a, b) => a.date - b.date);
         const initialWeight = weightEntries[0].weight;
-        const recentWeight = weightEntries[weightEntries.length - 1].weight;
-
-        muscleGroupAnalytics[muscleGroup].exercises[exerciseName].metrics.push(
+        const latestWeight = weightEntries[weightEntries.length - 1].weight;
+        metrics.push(
           `• Max weight lifted increased from ${getWeightLabel(
             initialWeight
-          )} to ${getWeightLabel(recentWeight)} since the first workout.`
+          )} to ${getWeightLabel(latestWeight)}.`
         );
-
-        // Max Weight Since Last Workout
         if (weightEntries.length > 1) {
-          const previousWeight =
-            weightEntries[weightEntries.length - 2].weight;
-          muscleGroupAnalytics[muscleGroup].exercises[exerciseName].metrics.push(
-            `• Change in max weight from the previous workout to the most recent: ${getWeightLabel(
+          const previousWeight = weightEntries[weightEntries.length - 2].weight;
+          metrics.push(
+            `• Change in max weight from previous to recent: ${getWeightLabel(
               previousWeight
-            )} -> ${getWeightLabel(recentWeight)}.`
+            )} -> ${getWeightLabel(latestWeight)}.`
           );
         }
-
         const allTimeMax = Math.max(...weightEntries.map((entry) => entry.weight));
-        muscleGroupAnalytics[muscleGroup].exercises[exerciseName].metrics.push(
+        metrics.push(
           `• All-time max weight lifted is ${getWeightLabel(allTimeMax)}.`
         );
       }
     });
-
+  
     setAnalytics({
       muscleGroupAnalytics,
       workoutFrequency,
     });
   };
+  
 
   const getWeightLabel = (weight) => {
     if (weight < 0) {

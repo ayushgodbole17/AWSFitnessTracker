@@ -107,6 +107,7 @@
   transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
 
+.workouts-container button:hover {
 
 .workouts-container button:hover {
   background-color: #0056b3;
