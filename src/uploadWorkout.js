@@ -23,7 +23,8 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
   const exercisesList = {
     Chest: [
       "Pushups",
-      "Assisted Dips",
+      "Deficit Pushups",
+      "Dips",
       "Dumbbell Bench Press",
       "Dumbbell Incline Press",
       "Barbell Bench Press",
@@ -94,7 +95,9 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Reverse Curls Barbell",
       "Hammer Curls Dumbbell",
       "Forearm Curls Pronated",
-      "Forearm Curls Supinated"
+      "Forearm Curls Supinated",
+      "Preacher Curls",
+      "Reverse Preacher Curls"
     ],
     Shoulders: [
       "Shoulder Press Machine",
