@@ -60,9 +60,10 @@ const HomePage = ({ onLogout }) => {
     <div className="home-container">
       {/* Title and Sign Out Button */}
       <header className="home-header">
-        <h1 className="main-title">GD Fitness Tracker</h1>
-        <button onClick={onLogout}>Sign Out</button>
-      </header>
+      <h1 className="main-title">GD Fitness Tracker</h1>
+      <button onClick={onLogout} className="sign-out-btn">Sign Out</button>
+    </header>
+
 
       {/* Tab Navigation */}
       <div className="tabs">

@@ -101,8 +101,6 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Reverse Preacher Curls",
       "Forearm Curls Pronated",
       "Forearm Curls Supinated",
-      "Preacher Curls",
-      "Reverse Preacher Curls"
     ],
     Shoulders: [
       "Shoulder Press Machine",
