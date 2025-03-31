@@ -101,6 +101,8 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Reverse Preacher Curls",
       "Forearm Curls Pronated",
       "Forearm Curls Supinated",
+      "Wrist Curls Supinated",
+      "Wrist Curls Pronated"
     ],
     Shoulders: [
       "Shoulder Press Machine",
@@ -117,7 +119,9 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
     Abs: [
       "Crunch Machine",
       "V-Crunch Machine",
-      "Oblique Machine"
+      "Oblique Machine",
+      "Hanging Leg Raises",
+      "Elbow-Supported Hanging Leg Raises"
     ]
   };
   const weightTypes = ["kg", "machine"];

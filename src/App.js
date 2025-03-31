@@ -7,6 +7,7 @@ import { getCurrentUser, signOut } from "./CognitoService";
 
 
 const App = () => {
+  
   // Read the authentication state directly from localStorage
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem("isAuthenticated") === "true";
