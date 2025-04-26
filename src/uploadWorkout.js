@@ -23,7 +23,8 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
   const exercisesList = {
     Chest: [
       "Pushups",
-      "Assisted Dips",
+      "Deficit Pushups",
+      "Dips",
       "Dumbbell Bench Press",
       "Dumbbell Incline Press",
       "Barbell Bench Press",
@@ -114,7 +115,8 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Rotator Cuff Band",
       "External Rotation Horizontal",
       "External Rotation Vertical",
-      "Rotator Cuff Cable"
+      "Rotator Cuff Cable",
+      "Reverse Pec Deck Flys"
     ],
     Abs: [
       "Crunch Machine",
