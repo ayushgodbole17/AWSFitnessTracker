@@ -29,6 +29,7 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Dumbbell Incline Press",
       "Barbell Bench Press",
       "Barbell Incline Press",
+      "Smith Machine Bench Press",
       "Chest Press Machine",
       "Chest Press",
       "Cable Crossovers",
@@ -58,7 +59,8 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Adductor Machine",
       "Dumbbell Lunges",
       "Sprinter Lunges Dumbbell",
-      "Sprinter Lunges Smith Machine"
+      "Sprinter Lunges Smith Machine",
+      "Dumbbell Lunges"
     ],
     Back: [
       "Pull Ups",
@@ -66,6 +68,7 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Chin Ups",
       "Assisted Chin-Ups",
       "Lat Pulldown",
+      "Lat Pulldown C-Curve",
       "Straight Arm Cable Pulldown",
       "Dumbbell Rows",
       "Barbell Rows",
