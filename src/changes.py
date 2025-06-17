@@ -75,7 +75,7 @@ new_exercise_names = [
     "Crunch Machine - Machine", "V-Crunch Machine - Machine", "Oblique - Machine"
 ]
 '''
-old_exercise_names = ["Skullcrushers"]
-new_exercise_names = ['Skullcrushers Neutral Grip Barbell']
+old_exercise_names = ["Glute Machine"]
+new_exercise_names = ['Lying Glute Machine']
 # Run the batch update
 update_exercises(api_url, old_exercise_names, new_exercise_names)

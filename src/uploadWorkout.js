@@ -51,7 +51,8 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Calf Raises",
       "Seated Calf Raises",
       "Tib Raises",
-      "Glute Machine",
+      "Lying Glute Machine",
+      "Standing Glute Machine",
       "Hip Thrusts",
       "Abductor Machine",
       "Adductor Machine",
@@ -104,7 +105,9 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Preacher Curls Cable",
       "Reverse Preacher Curls",
       "Forearm Curls Pronated",
-      "Forearm Curls Supinated"
+      "Forearm Curls Pronated Single-Hand",
+      "Forearm Curls Supinated",
+      "Forearm Curls Supinated Single-Hand"
     ],
     Shoulders: [
       "Shoulder Press Machine",
@@ -118,7 +121,9 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "External Rotation Horizontal",
       "External Rotation Vertical",
       "Rotator Cuff Cable",
-      "Reverse Pec Deck Flys"
+      "Reverse Pec Deck Flys",
+      "Reverse Pec Deck Flys Sideways",
+      "Reverse Cable Crossovers"
     ],
     Abs: [
       "Crunch Machine",
