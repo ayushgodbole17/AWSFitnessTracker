@@ -101,9 +101,7 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Preacher Curls Cable",
       "Reverse Preacher Curls",
       "Forearm Curls Pronated",
-      "Forearm Curls Supinated",
-      "Wrist Curls Supinated",
-      "Wrist Curls Pronated"
+      "Forearm Curls Supinated"
     ],
     Shoulders: [
       "Shoulder Press Machine",
@@ -111,6 +109,7 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Shoulder Press Barbell",
       "Lateral Raises",
       "Cable Lateral Raises",
+      "Lateral Raises Machine",
       "Face Pulls",
       "Rotator Cuff Band",
       "External Rotation Horizontal",

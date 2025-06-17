@@ -34,6 +34,33 @@ const formatAIText = (text) => {
   return formatted;
 };
 
+// Calculate percentage change, handling negative weights (assistance)
+const calculatePercentageChange = (current, previous) => {
+  if (previous === 0) {
+    return current === 0 ? 0 : (current > 0 ? 100 : -100);
+  }
+  
+  // If both are negative (both assisted), calculate normally
+  if (current < 0 && previous < 0) {
+    return ((current - previous) / Math.abs(previous)) * 100;
+  }
+  
+  // If going from assisted to weighted (negative to positive)
+  if (previous < 0 && current > 0) {
+    // This represents a significant improvement
+    return ((Math.abs(previous) + current) / Math.abs(previous)) * 100;
+  }
+  
+  // If going from weighted to assisted (positive to negative)
+  if (previous > 0 && current < 0) {
+    // This represents a regression
+    return -((previous + Math.abs(current)) / previous) * 100;
+  }
+  
+  // Both positive (normal calculation)
+  return ((current - previous) / previous) * 100;
+};
+
 // A reusable chart sub-component to show progression for a single exercise
 const ProgressionChart = ({ progression }) => {
   // Sort by date (oldest to newest) so chart lines go in correct order
@@ -229,49 +256,58 @@ const WorkoutAnalytics = ({ workouts }) => {
       muscleGroupAnalytics[muscleGroup] = { exercises: {} };
       Object.keys(overallAnalytics[muscleGroup]).forEach((exerciseName) => {
         const rec = overallAnalytics[muscleGroup][exerciseName];
-        const overallAvgVolumePerSet = rec.totalSets > 0
-          ? (rec.totalVolume / rec.totalSets)
-          : 0;
 
         // Sort progression by date
         const sortedProg = rec.progression.sort((a, b) => a.date - b.date);
 
-        // Basic progression analysis
-        let progressionAnalysis = [];
-        if (sortedProg.length > 1) {
+        // Calculate metrics with percentage changes
+        let summaryMetrics = [];
+        
+        if (sortedProg.length > 0) {
+          const latest = sortedProg[sortedProg.length - 1];
           const first = sortedProg[0];
-          const last = sortedProg[sortedProg.length - 1];
-          const volumeChangePerc = first.totalVolume === 0
-            ? last.totalVolume * 100
-            : ((last.totalVolume - first.totalVolume) / first.totalVolume) * 100;
-          progressionAnalysis.push(
-            `Total volume: ${first.totalVolume.toFixed(2)} kg → ${last.totalVolume.toFixed(2)} kg (${volumeChangePerc.toFixed(2)}% change)`
-          );
+          const previous = sortedProg.length > 1 ? sortedProg[sortedProg.length - 2] : null;
 
-          let totalPerc = 0,
-            count = 0;
-          for (let i = 1; i < sortedProg.length; i++) {
-            const prev = sortedProg[i - 1].totalVolume;
-            const curr = sortedProg[i].totalVolume;
-            const changePerc = prev === 0 ? curr * 100 : ((curr - prev) / prev) * 100;
-            totalPerc += changePerc;
-            count++;
+          // Total Volume per workout
+          const totalVolumeFromPrev = previous ? 
+            calculatePercentageChange(latest.totalVolume, previous.totalVolume) : 0;
+          const totalVolumeFromFirst = 
+            calculatePercentageChange(latest.totalVolume, first.totalVolume);
+          
+          summaryMetrics.push(`Total Volume: ${latest.totalVolume.toFixed(2)} kg`);
+          if (previous) {
+            summaryMetrics.push(`  • vs Previous: ${totalVolumeFromPrev >= 0 ? '+' : ''}${totalVolumeFromPrev.toFixed(1)}%`);
           }
-          progressionAnalysis.push(
-            `Average change between workouts: ${(totalPerc / count).toFixed(2)}%`
-          );
-        } else {
-          progressionAnalysis.push("Not enough data for progression analysis.");
-        }
+          summaryMetrics.push(`  • vs First: ${totalVolumeFromFirst >= 0 ? '+' : ''}${totalVolumeFromFirst.toFixed(1)}%`);
 
-        const summaryMetrics = [
-          `Total Volume: ${rec.totalVolume.toFixed(2)} kg`,
-          `Average Volume/Workout: ${(rec.totalVolume / rec.workoutCount).toFixed(2)} kg`,
-          `Average Volume/Set: ${overallAvgVolumePerSet.toFixed(2)} kg`,
-          `Workout Count: ${rec.workoutCount}`,
-          `Max Weight: ${getWeightLabel(rec.maxWeight)}`,
-          ...progressionAnalysis
-        ];
+          // Average Volume per set per workout
+          const avgVolumeFromPrev = previous ? 
+            calculatePercentageChange(latest.avgVolumePerSet, previous.avgVolumePerSet) : 0;
+          const avgVolumeFromFirst = 
+            calculatePercentageChange(latest.avgVolumePerSet, first.avgVolumePerSet);
+          
+          summaryMetrics.push(`Avg Volume/Set: ${latest.avgVolumePerSet.toFixed(2)} kg`);
+          if (previous) {
+            summaryMetrics.push(`  • vs Previous: ${avgVolumeFromPrev >= 0 ? '+' : ''}${avgVolumeFromPrev.toFixed(1)}%`);
+          }
+          summaryMetrics.push(`  • vs First: ${avgVolumeFromFirst >= 0 ? '+' : ''}${avgVolumeFromFirst.toFixed(1)}%`);
+
+          // Max Weight lifted in workout
+          const maxWeightFromPrev = previous ? 
+            calculatePercentageChange(latest.maxWeight, previous.maxWeight) : 0;
+          const maxWeightFromFirst = 
+            calculatePercentageChange(latest.maxWeight, first.maxWeight);
+          
+          summaryMetrics.push(`Max Weight: ${getWeightLabel(latest.maxWeight)}`);
+          if (previous) {
+            summaryMetrics.push(`  • vs Previous: ${maxWeightFromPrev >= 0 ? '+' : ''}${maxWeightFromPrev.toFixed(1)}%`);
+          }
+          summaryMetrics.push(`  • vs First: ${maxWeightFromFirst >= 0 ? '+' : ''}${maxWeightFromFirst.toFixed(1)}%`);
+
+          summaryMetrics.push(`Workout Count: ${rec.workoutCount}`);
+        } else {
+          summaryMetrics.push("No data available.");
+        }
 
         muscleGroupAnalytics[muscleGroup].exercises[exerciseName] = {
           metrics: summaryMetrics,
