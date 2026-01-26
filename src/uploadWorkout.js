@@ -32,6 +32,8 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Smith Machine Bench Press",
       "Chest Press Machine",
       "Chest Press",
+      "Incline Press Machine",
+      "Flat Press Machine",
       "Cable Crossovers",
       "Incline Cable Crossovers",
       "Decline Cable Crossovers",
@@ -60,7 +62,9 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Dumbbell Lunges",
       "Sprinter Lunges Dumbbell",
       "Sprinter Lunges Smith Machine",
-      "Dumbbell Lunges"
+      "Dumbbell Lunges",
+      "Perfect Squat Machine",
+      "Perfect Squat Machine Calf Raises"
     ],
     Back: [
       "Pull Ups",
@@ -129,7 +133,8 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Rotator Cuff Cable",
       "Reverse Pec Deck Flys",
       "Reverse Pec Deck Flys Sideways",
-      "Reverse Cable Crossovers"
+      "Reverse Cable Crossovers",
+      "Rear Delt Bench Flys Dumbbell",
     ],
     Abs: [
       "Crunch Machine",
