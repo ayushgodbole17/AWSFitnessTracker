@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import "./getWorkouts.css";
-import axios from "axios";
+import apiClient from "./apiClient";
 
 const GetWorkouts = ({ workouts, onEditWorkout, onDeleteSuccess }) => {
   // We store only the expanded workout ID locally
@@ -23,13 +23,7 @@ const GetWorkouts = ({ workouts, onEditWorkout, onDeleteSuccess }) => {
     if (!window.confirm("Are you sure you want to delete this workout?")) return;
 
     try {
-      console.log("Deleting workout with ID:", workoutID, "for user:", userID);
-      await axios.delete(
-        "https://6a29no5ke5.execute-api.us-east-1.amazonaws.com/workoutStage1/deleteWorkout",
-        {
-          params: { workoutID, userID },
-        }
-      );
+      await apiClient.delete("/deleteWorkout", { params: { workoutID, userID } });
       toast.success("Workout deleted successfully.");
 
       // Option 1: Call parent’s success callback so it can refetch or update its state

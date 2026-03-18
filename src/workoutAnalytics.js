@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
+import DOMPurify from "dompurify";
+import { transformWorkouts } from "./utils";
+import ErrorBoundary from "./ErrorBoundary";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,7 +16,6 @@ import {
 import { Line } from "react-chartjs-2";
 import "./WorkoutAnalytics.css";
 
-// Register Chart.js components for react-chartjs-2
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -39,43 +41,32 @@ const calculatePercentageChange = (current, previous) => {
   if (previous === 0) {
     return current === 0 ? 0 : (current > 0 ? 100 : -100);
   }
-  
-  // If both are negative (both assisted), calculate normally
   if (current < 0 && previous < 0) {
     return ((current - previous) / Math.abs(previous)) * 100;
   }
-  
-  // If going from assisted to weighted (negative to positive)
   if (previous < 0 && current > 0) {
-    // This represents a significant improvement
     return ((Math.abs(previous) + current) / Math.abs(previous)) * 100;
   }
-  
-  // If going from weighted to assisted (positive to negative)
   if (previous > 0 && current < 0) {
-    // This represents a regression
     return -((previous + Math.abs(current)) / previous) * 100;
   }
-  
-  // Both positive (normal calculation)
   return ((current - previous) / previous) * 100;
 };
 
-// A reusable chart sub-component to show progression for a single exercise
+// Pure helper — no component state needed
+const getWeightLabel = (weight) =>
+  weight < 0 ? `${Math.abs(weight)} kg (assisted)` : `${weight} kg`;
+
 const ProgressionChart = ({ progression }) => {
-  // Sort by date (oldest to newest) so chart lines go in correct order
   const sortedProg = [...progression].sort((a, b) => a.date - b.date);
 
-  // Build arrays for the chart
   const labels = sortedProg.map((entry) =>
     entry.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
   );
   const totalVolumeData = sortedProg.map((entry) => entry.totalVolume.toFixed(2));
   const avgVolumeData = sortedProg.map((entry) => entry.avgVolumePerSet.toFixed(2));
-  // We'll store max weight as positive only
   const maxWeightData = sortedProg.map((entry) => Math.abs(entry.maxWeight).toFixed(2));
 
-  // Chart.js dataset config
   const data = {
     labels,
     datasets: [
@@ -108,32 +99,20 @@ const ProgressionChart = ({ progression }) => {
 
   const options = {
     responsive: true,
-    maintainAspectRatio: false, // Make chart flexible in container
-    interaction: {
-      mode: "index",
-      intersect: false
-    },
+    maintainAspectRatio: false,
+    interaction: { mode: "index", intersect: false },
     scales: {
-      yVolume: {
-        type: "linear",
-        display: true,
-        position: "left"
-      },
+      yVolume: { type: "linear", display: true, position: "left" },
       yWeight: {
         type: "linear",
         display: true,
         position: "right",
-        grid: {
-          drawOnChartArea: false // keep volumes and weight separate
-        }
+        grid: { drawOnChartArea: false }
       }
     },
     plugins: {
       legend: { position: "top" },
-      title: {
-        display: false,
-        text: "Progression Over Time"
-      }
+      title: { display: false }
     }
   };
 
@@ -153,18 +132,10 @@ const WorkoutAnalytics = ({ workouts }) => {
   const [aiInsights, setAiInsights] = useState("");
   const [loadingAI, setLoadingAI] = useState(false);
 
-  useEffect(() => {
-    if (workouts.length > 0) {
-      computeAnalytics();
-    }
-  }, [workouts]);
-
-  // Compute detailed analytics across all workouts
-  const computeAnalytics = () => {
+  const computeAnalytics = useCallback(() => {
     const overallAnalytics = {};
     const workoutDatesSet = new Set();
 
-    // Merges pull/chin variations for simpler grouping
     const pullChinExercises = [
       "Pull Ups",
       "Assisted Pull Ups",
@@ -172,21 +143,16 @@ const WorkoutAnalytics = ({ workouts }) => {
       "Assisted Chin-Ups"
     ];
 
-    // Sort workouts by date (oldest to newest)
     const sortedWorkouts = [...workouts].sort(
       (a, b) => new Date(a.workoutDate) - new Date(b.workoutDate)
     );
 
-    // Process each workout
     sortedWorkouts.forEach((workout) => {
       workoutDatesSet.add(workout.workoutDate);
 
-      // Aggregate data for each exercise within the workout
       const workoutAgg = {};
       workout.exercises.forEach((exercise) => {
         let key = `${exercise.muscleGroup}-${exercise.exercise}`;
-
-        // Combine back exercises under a single "Pull Up + Chin-Up" label
         if (
           exercise.muscleGroup === "Back" &&
           pullChinExercises.includes(exercise.exercise)
@@ -194,22 +160,13 @@ const WorkoutAnalytics = ({ workouts }) => {
           key = "Back-Pull Up + Chin-Up";
         }
         if (!workoutAgg[key]) {
-          workoutAgg[key] = {
-            totalVolume: 0,
-            totalSets: 0,
-            maxWeight: Number.NEGATIVE_INFINITY
-          };
+          workoutAgg[key] = { totalVolume: 0, totalSets: 0, maxWeight: Number.NEGATIVE_INFINITY };
         }
-        const volume = exercise.sets * exercise.reps * Math.abs(exercise.weight);
-        workoutAgg[key].totalVolume += volume;
+        workoutAgg[key].totalVolume += exercise.sets * exercise.reps * Math.abs(exercise.weight);
         workoutAgg[key].totalSets += exercise.sets;
-        workoutAgg[key].maxWeight = Math.max(
-          workoutAgg[key].maxWeight,
-          exercise.weight
-        );
+        workoutAgg[key].maxWeight = Math.max(workoutAgg[key].maxWeight, exercise.weight);
       });
 
-      // Merge current workout's aggregation into overallAnalytics
       Object.keys(workoutAgg).forEach((key) => {
         let muscleGroup, exerciseName;
         if (key === "Back-Pull Up + Chin-Up") {
@@ -218,9 +175,7 @@ const WorkoutAnalytics = ({ workouts }) => {
         } else {
           [muscleGroup, exerciseName] = key.split("-");
         }
-        if (!overallAnalytics[muscleGroup]) {
-          overallAnalytics[muscleGroup] = {};
-        }
+        if (!overallAnalytics[muscleGroup]) overallAnalytics[muscleGroup] = {};
         if (!overallAnalytics[muscleGroup][exerciseName]) {
           overallAnalytics[muscleGroup][exerciseName] = {
             totalVolume: 0,
@@ -246,67 +201,58 @@ const WorkoutAnalytics = ({ workouts }) => {
       });
     });
 
-    const totalWorkouts = sortedWorkouts.length;
-    const uniqueDays = workoutDatesSet.size;
-    const workoutFrequency = `You completed ${totalWorkouts} workout(s) on ${uniqueDays} unique day(s).`;
+    const workoutFrequency = `You completed ${sortedWorkouts.length} workout(s) on ${workoutDatesSet.size} unique day(s).`;
 
-    // Build final analytics for UI
     const muscleGroupAnalytics = {};
     Object.keys(overallAnalytics).forEach((muscleGroup) => {
       muscleGroupAnalytics[muscleGroup] = { exercises: {} };
       Object.keys(overallAnalytics[muscleGroup]).forEach((exerciseName) => {
         const rec = overallAnalytics[muscleGroup][exerciseName];
-
-        // Sort progression by date
         const sortedProg = rec.progression.sort((a, b) => a.date - b.date);
 
-        // Calculate metrics with percentage changes
         let summaryMetrics = [];
-        
+
         if (sortedProg.length > 0) {
           const latest = sortedProg[sortedProg.length - 1];
           const first = sortedProg[0];
           const previous = sortedProg.length > 1 ? sortedProg[sortedProg.length - 2] : null;
 
-          // Total Volume per workout
-          const totalVolumeFromPrev = previous ? 
-            calculatePercentageChange(latest.totalVolume, previous.totalVolume) : 0;
-          const totalVolumeFromFirst = 
-            calculatePercentageChange(latest.totalVolume, first.totalVolume);
-          
-          summaryMetrics.push(`Total Volume: ${latest.totalVolume.toFixed(2)} kg`);
-          if (previous) {
-            summaryMetrics.push(`  • vs Previous: ${totalVolumeFromPrev >= 0 ? '+' : ''}${totalVolumeFromPrev.toFixed(1)}%`);
-          }
-          summaryMetrics.push(`  • vs First: ${totalVolumeFromFirst >= 0 ? '+' : ''}${totalVolumeFromFirst.toFixed(1)}%`);
+          const totalVolumeFromPrev = previous
+            ? calculatePercentageChange(latest.totalVolume, previous.totalVolume) : null;
+          const avgVolumeFromPrev = previous
+            ? calculatePercentageChange(latest.avgVolumePerSet, previous.avgVolumePerSet) : null;
+          const maxWeightFromPrev = previous
+            ? calculatePercentageChange(latest.maxWeight, previous.maxWeight) : null;
 
-          // Average Volume per set per workout
-          const avgVolumeFromPrev = previous ? 
-            calculatePercentageChange(latest.avgVolumePerSet, previous.avgVolumePerSet) : 0;
-          const avgVolumeFromFirst = 
-            calculatePercentageChange(latest.avgVolumePerSet, first.avgVolumePerSet);
-          
-          summaryMetrics.push(`Avg Volume/Set: ${latest.avgVolumePerSet.toFixed(2)} kg`);
-          if (previous) {
-            summaryMetrics.push(`  • vs Previous: ${avgVolumeFromPrev >= 0 ? '+' : ''}${avgVolumeFromPrev.toFixed(1)}%`);
-          }
-          summaryMetrics.push(`  • vs First: ${avgVolumeFromFirst >= 0 ? '+' : ''}${avgVolumeFromFirst.toFixed(1)}%`);
-
-          // Max Weight lifted in workout
-          const maxWeightFromPrev = previous ? 
-            calculatePercentageChange(latest.maxWeight, previous.maxWeight) : 0;
-          const maxWeightFromFirst = 
-            calculatePercentageChange(latest.maxWeight, first.maxWeight);
-          
-          summaryMetrics.push(`Max Weight: ${getWeightLabel(latest.maxWeight)}`);
-          if (previous) {
-            summaryMetrics.push(`  • vs Previous: ${maxWeightFromPrev >= 0 ? '+' : ''}${maxWeightFromPrev.toFixed(1)}%`);
-          }
-          summaryMetrics.push(`  • vs First: ${maxWeightFromFirst >= 0 ? '+' : ''}${maxWeightFromFirst.toFixed(1)}%`);
-
-          summaryMetrics.push(`Workout Count: ${rec.workoutCount}`);
+          summaryMetrics = [
+            {
+              label: "Total Volume",
+              value: `${latest.totalVolume.toFixed(2)} kg`,
+              comparisons: [
+                ...(totalVolumeFromPrev !== null ? [{ label: "vs Previous", pct: totalVolumeFromPrev }] : []),
+                { label: "vs First", pct: calculatePercentageChange(latest.totalVolume, first.totalVolume) }
+              ]
+            },
+            {
+              label: "Avg Volume/Set",
+              value: `${latest.avgVolumePerSet.toFixed(2)} kg`,
+              comparisons: [
+                ...(avgVolumeFromPrev !== null ? [{ label: "vs Previous", pct: avgVolumeFromPrev }] : []),
+                { label: "vs First", pct: calculatePercentageChange(latest.avgVolumePerSet, first.avgVolumePerSet) }
+              ]
+            },
+            {
+              label: "Max Weight",
+              value: getWeightLabel(latest.maxWeight),
+              comparisons: [
+                ...(maxWeightFromPrev !== null ? [{ label: "vs Previous", pct: maxWeightFromPrev }] : []),
+                { label: "vs First", pct: calculatePercentageChange(latest.maxWeight, first.maxWeight) }
+              ]
+            },
+            { label: "Workout Count", value: String(rec.workoutCount), comparisons: [] }
+          ];
         } else {
-          summaryMetrics.push("No data available.");
+          summaryMetrics = [{ label: "No data available", value: "", comparisons: [] }];
         }
 
         muscleGroupAnalytics[muscleGroup].exercises[exerciseName] = {
@@ -316,72 +262,54 @@ const WorkoutAnalytics = ({ workouts }) => {
       });
     });
 
-    setAnalytics({
-      muscleGroupAnalytics,
-      workoutFrequency
-    });
-  };
+    setAnalytics({ muscleGroupAnalytics, workoutFrequency });
+  }, [workouts]);
 
-  // Show assisted weight if negative
-  const getWeightLabel = (weight) => {
-    return weight < 0
-      ? `${Math.abs(weight)} kg (assisted)`
-      : `${weight} kg`;
-  };
+  useEffect(() => {
+    if (workouts.length > 0) {
+      computeAnalytics();
+    }
+  }, [workouts, computeAnalytics]);
 
-  // Toggle detailed view for an exercise, including chart
   const toggleExerciseDetails = (muscleGroup, exerciseName) => {
     const key = `${muscleGroup}-${exerciseName}`;
-    setExpandedExercises((prev) => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    setExpandedExercises((prev) => ({ ...prev, [key]: !prev[key] }));
   };
-
-  // Minimal transform for AI analysis
-  const transformWorkouts = (rawWorkouts) =>
-    rawWorkouts.map((workout) => ({
-      workoutName: workout.workoutName,
-      workoutDate: workout.workoutDate,
-      exercises: (workout.exercises || []).map((ex) => ({
-        exercise: ex.exercise,
-        sets: ex.sets,
-        reps: ex.reps,
-        weight: ex.weight,
-        isAssistance: ex.isAssistance
-      }))
-    }));
 
   const handleAIAnalysis = async () => {
     if (!workouts || workouts.length === 0) return;
     setLoadingAI(true);
     setAiInsights("Analyzing your workouts with AI...");
     try {
-      const minimalWorkouts = transformWorkouts(workouts);
       const response = await axios.post(
         process.env.REACT_APP_CHATBOT_API_URL,
-        {
-          userInput: "Analyze my workouts",
-          workoutHistory: minimalWorkouts
-        },
+        { userInput: "Analyze my workouts", workoutHistory: transformWorkouts(workouts) },
         { headers: { "Content-Type": "application/json" } }
       );
-      const aiResponse = response.data?.response || "No insights available.";
-      setAiInsights(aiResponse);
+      setAiInsights(response.data?.response || "No insights available.");
     } catch (error) {
       console.error("Error with AI Analysis:", error);
-      setAiInsights(
-        "An error occurred while analyzing. Please try again later."
-      );
+      setAiInsights("An error occurred while analyzing. Please try again later.");
     } finally {
       setLoadingAI(false);
     }
   };
 
+  if (!workouts || workouts.length === 0) {
+    return (
+      <div className="analytics-title-container">
+        <h2 className="analytics-title">Workout Analytics</h2>
+        <p style={{ color: "#6c757d", marginTop: "20px" }}>
+          Log your first workout to see analytics here.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="analytics-title-container">
-        <h3 className="analytics-title">Workout Analytics</h3>
+        <h2 className="analytics-title">Workout Analytics</h2>
       </div>
 
       <div className="analytics-container">
@@ -389,11 +317,7 @@ const WorkoutAnalytics = ({ workouts }) => {
 
         {/* AI Analysis */}
         <div className="ai-analysis-section">
-          <button
-            className="ai-analyze-btn"
-            onClick={handleAIAnalysis}
-            disabled={loadingAI}
-          >
+          <button className="ai-analyze-btn" onClick={handleAIAnalysis} disabled={loadingAI}>
             Analyze with AI
           </button>
           {aiInsights && (
@@ -401,9 +325,7 @@ const WorkoutAnalytics = ({ workouts }) => {
               {loadingAI ? (
                 <span>{aiInsights}</span>
               ) : (
-                <div
-                  dangerouslySetInnerHTML={{ __html: formatAIText(aiInsights) }}
-                />
+                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatAIText(aiInsights)) }} />
               )}
             </div>
           )}
@@ -414,32 +336,43 @@ const WorkoutAnalytics = ({ workouts }) => {
           <div key={muscleGroup} className="muscle-group-section">
             <h4>{muscleGroup}</h4>
             <div className="exercise-grid">
-              {Object.keys(
-                analytics.muscleGroupAnalytics[muscleGroup].exercises
-              ).map((exerciseName) => {
+              {Object.keys(analytics.muscleGroupAnalytics[muscleGroup].exercises).map((exerciseName) => {
                 const { metrics, progression } =
                   analytics.muscleGroupAnalytics[muscleGroup].exercises[exerciseName];
-
                 const isExpanded = expandedExercises[`${muscleGroup}-${exerciseName}`];
 
                 return (
                   <div
                     key={exerciseName}
                     className="exercise-card"
-                    onClick={() =>
-                      toggleExerciseDetails(muscleGroup, exerciseName)
-                    }
+                    onClick={() => toggleExerciseDetails(muscleGroup, exerciseName)}
                   >
                     <h5>{exerciseName}</h5>
                     {isExpanded && (
                       <div className="exercise-details show">
                         <ul>
-                          {metrics.map((m, idx) => (
-                            <li key={idx}>{m}</li>
+                          {metrics.map((metric, idx) => (
+                            <li key={idx}>
+                              <span className="metric-label">
+                                {metric.label}{metric.value ? ":" : ""}
+                              </span>
+                              {metric.value && (
+                                <span className="metric-value"> {metric.value}</span>
+                              )}
+                              {metric.comparisons.map((comp, cIdx) => (
+                                <div
+                                  key={cIdx}
+                                  className={`metric-comparison ${comp.pct >= 0 ? "positive" : "negative"}`}
+                                >
+                                  {comp.label}: {comp.pct >= 0 ? "+" : ""}{comp.pct.toFixed(1)}%
+                                </div>
+                              ))}
+                            </li>
                           ))}
                         </ul>
-                        {/* Chart for progression */}
-                        <ProgressionChart progression={progression} />
+                        <ErrorBoundary>
+                          <ProgressionChart progression={progression} />
+                        </ErrorBoundary>
                       </div>
                     )}
                   </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "./apiClient";
 
 import UploadWorkout from "./uploadWorkout";
 import GetWorkouts from "./getWorkouts";
@@ -9,10 +9,11 @@ import "./HomePage.css";
 import "./chatbot.css";
 
 const HomePage = ({ onLogout }) => {
-  const [activeTab, setActiveTab] = useState("uploadWorkout"); // Default to the first tab
+  const [activeTab, setActiveTab] = useState("uploadWorkout");
   const [editingWorkout, setEditingWorkout] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [workouts, setWorkouts] = useState([]);
+  const [loadingWorkouts, setLoadingWorkouts] = useState(true);
 
   // Whenever we need to refresh (or on initial mount), fetch the workouts
   useEffect(() => {
@@ -21,26 +22,18 @@ const HomePage = ({ onLogout }) => {
 
   const fetchAllWorkouts = async () => {
     const email = localStorage.getItem("email");
-    if (!email) {
-      console.error("No user email found in localStorage.");
-      return;
-    }
+    if (!email) return;
 
+    setLoadingWorkouts(true);
     try {
-      // Your existing API endpoint
-      const response = await axios.get(
-        "https://6a29no5ke5.execute-api.us-east-1.amazonaws.com/workoutStage1/GetPastWorkouts",
-        { params: { email } }
-      );
-
+      const response = await apiClient.get("/GetPastWorkouts", { params: { email } });
       if (response.data && Array.isArray(response.data)) {
-        // Sort or transform if desired
         setWorkouts(response.data);
-      } else {
-        console.error("Invalid workout data format:", response.data);
       }
     } catch (error) {
       console.error("Error fetching workouts:", error);
+    } finally {
+      setLoadingWorkouts(false);
     }
   };
 
@@ -89,6 +82,9 @@ const HomePage = ({ onLogout }) => {
 
       {/* Tab Content */}
       <div className="tab-content">
+        {loadingWorkouts && activeTab !== "uploadWorkout" && (
+          <p style={{ textAlign: "center", color: "#6c757d" }}>Loading workouts...</p>
+        )}
         {activeTab === "uploadWorkout" && (
           <UploadWorkout
             onWorkoutSave={handleWorkoutSave}
@@ -97,10 +93,9 @@ const HomePage = ({ onLogout }) => {
         )}
         {activeTab === "viewWorkouts" && (
           <GetWorkouts
-            // We no longer fetch inside this component
-            // We just pass the workouts down for display
             workouts={workouts}
             onEditWorkout={handleEditWorkout}
+            onDeleteSuccess={() => setRefreshTrigger((prev) => prev + 1)}
           />
         )}
         {activeTab === "analytics" && <WorkoutAnalytics workouts={workouts} />}

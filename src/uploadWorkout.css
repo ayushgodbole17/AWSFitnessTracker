@@ -33,7 +33,7 @@
 }
 
 /* The card that wraps the Add Exercise section */
-.exercise-card {
+.upload-workout-container .exercise-card {
   background: #f8f9fa;  /* Light card background */
   border-radius: 8px;
   padding: 20px;
@@ -41,7 +41,7 @@
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
-.exercise-card h4 {
+.upload-workout-container .exercise-card h4 {
   margin-top: 0;
   margin-bottom: 1rem;
   font-size: 1.2rem;
@@ -131,4 +131,36 @@
 
 .upload-workout-container form > button[type="submit"]:hover {
   background: #0056b3;
+}
+
+/* Mobile — labels stack above inputs */
+@media (max-width: 600px) {
+  .upload-workout-container {
+    margin: 20px auto;
+    padding: 12px;
+  }
+
+  .exercise-input-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-label {
+    text-align: left;
+    min-width: unset;
+  }
+
+  .select-input,
+  .short-input,
+  .exercise-input {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .button-group button,
+  .upload-workout-container form > button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+  }
 }

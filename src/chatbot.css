@@ -76,6 +76,8 @@
   max-height: 350px;
   overflow-y: auto;
   margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
 }
 
 .chat-bubble {
@@ -135,6 +137,27 @@
 }
 
 .chat-send-btn:disabled {
-  background-color: #cccccc; /* Disabled state */
+  background-color: #cccccc;
   cursor: not-allowed;
+}
+
+/* Mobile — full-width bottom sheet */
+@media (max-width: 480px) {
+  .chat-widget {
+    width: 100%;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px 12px 0 0;
+    max-height: 70vh;
+  }
+
+  .chat-widget-expanded {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .chat-history {
+    max-height: 45vh;
+  }
 }

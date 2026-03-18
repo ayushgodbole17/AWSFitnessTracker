@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./chatbot.css";
+import { transformWorkouts } from "./utils";
 
 function Chatbot({ workouts = [] }) {
   const [userInput, setUserInput] = useState("");
@@ -21,27 +22,18 @@ function Chatbot({ workouts = [] }) {
     setUserInput(e.target.value);
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !loading) {
+      handleSend();
+    }
+  };
+
   // Auto-scroll to bottom when chatHistory or loading changes
   useEffect(() => {
     if (chatBodyRef.current) {
       chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
     }
   }, [chatHistory, loading]);
-
-  // Helper to transform workouts so we only send exercise name, sets, reps, weight, isAssistance
-  const transformWorkouts = (rawWorkouts) => {
-    return rawWorkouts.map((workout) => ({
-      workoutName: workout.workoutName,
-      workoutDate: workout.workoutDate,
-      exercises: (workout.exercises || []).map((ex) => ({
-        exercise: ex.exercise,
-        sets: ex.sets,
-        reps: ex.reps,
-        weight: ex.weight,
-        isAssistance: ex.isAssistance,
-      })),
-    }));
-  };
 
   // Remove unwanted markdown characters from the bot's response
   const sanitizeMessage = (text) => {
@@ -144,6 +136,7 @@ function Chatbot({ workouts = [] }) {
                 type="text"
                 value={userInput}
                 onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
                 placeholder="Ask me anything about workouts!"
                 className="chat-input"
               />

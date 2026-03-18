@@ -20,7 +20,6 @@
   margin: 20px auto;
   background: transparent;
   border-radius: 15px;
-  font-family: "Arial", sans-serif;
 }
 
 /* Workout Frequency Paragraph */
@@ -61,11 +60,12 @@
 .ai-insights {
   margin-top: 15px;
   font-size: 1rem;
-  background:transparent;
+  background: rgba(255, 255, 255, 0.85);
   padding: 12px 15px;
   border-radius: 8px;
   line-height: 1.4;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: left;
 }
 
 /* Muscle Group Section */
@@ -95,7 +95,7 @@
 }
 
 /* Exercise Card */
-.exercise-card {
+.analytics-container .exercise-card {
   padding: 10px;
   background: transparent;
   cursor: pointer;
@@ -103,12 +103,12 @@
   transition: all 0.3s ease-in-out;
 }
 
-.exercise-card:hover {
+.analytics-container .exercise-card:hover {
   background: #e6f7ff;
   transform: translateY(-2px);
 }
 
-.exercise-card h5 {
+.analytics-container .exercise-card h5 {
   font-size: 1.2rem;
   color: #007bff;
   font-weight: bold;
@@ -116,30 +116,81 @@
   transition: color 0.3s ease-in-out;
 }
 
-.exercise-card h5:hover {
+.analytics-container .exercise-card h5:hover {
   color: #0056b3;
 }
 
 /* Exercise Details */
-.exercise-details {
+.analytics-container .exercise-details {
   margin-top: 10px;
   padding-top: 8px;
   border-top: 1px solid #ddd;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  text-align: left;
 }
 
-.exercise-details ul {
+.analytics-container .exercise-details ul {
   list-style-type: none;
   padding-left: 0;
   margin-top: 10px;
-  transition: all 0.3s ease-in-out;
 }
 
-.exercise-details ul li {
+.analytics-container .exercise-details ul li {
   margin-bottom: 8px;
   line-height: 1.4;
   padding: 10px;
   background: #ffffff;
   border-radius: 10px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Metric label/value inside each li */
+.metric-label {
+  font-weight: 600;
+  color: #343a40;
+}
+
+.metric-value {
+  color: #343a40;
+}
+
+/* Percentage comparison lines */
+.metric-comparison {
+  font-size: 0.82rem;
+  padding-left: 8px;
+  margin-top: 3px;
+}
+
+.metric-comparison.positive {
+  color: #28a745;
+}
+
+.metric-comparison.negative {
+  color: #dc3545;
+}
+
+/* Chart Container */
+.chart-container {
+  height: 250px;
+  margin-top: 15px;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .analytics-title {
+    font-size: 1.6rem;
+  }
+
+  .muscle-group-section h4 {
+    font-size: 1.4rem;
+  }
+
+  .exercise-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .chart-container {
+    height: 200px;
+  }
 }

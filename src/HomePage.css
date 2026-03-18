@@ -7,19 +7,19 @@
   gap: 10px;
   padding-top: 20px;
   margin-bottom: 30px;
-  background: transparent; /* Allows gradient from body to show */
+  background: transparent;
 }
 
-/* Main container (optional usage) */
+/* Main container */
 .home-container {
-  background: transparent; 
+  background: transparent;
 }
 
 /* Sign-Out Button */
 .sign-out-btn {
   padding: 6px 12px;
-  font-size: 1.5rem;
-  background-color: #d9534f; /* Danger color */
+  font-size: 1rem;
+  background-color: #d9534f;
   color: white;
   border: none;
   border-radius: 4px;
@@ -32,24 +32,23 @@
   transform: scale(1.02);
 }
 
-/* Main title for the homepage */
+/* Main title */
 .main-title {
   font-size: 2.8rem;
   font-weight: bold;
   color: #058eff;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Tabs container */
 .tabs {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 20px;
-  max-width: 1200px; /* Constrain the width */
-  margin-left: auto;
-  margin-right: auto;
-  padding: 0 20px; /* Prevent touching screen edges */
+  margin: 0 auto 20px auto;
+  max-width: 1200px;
+  padding: 0 20px;
 }
 
 .tab-btn {
@@ -61,11 +60,7 @@
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.3s ease-in-out;
-
-  /* Add horizontal spacing */
-  margin: 0 10px;
 }
-
 
 .tab-btn.active {
   background-color: #007bff;
@@ -79,16 +74,28 @@
 }
 
 /* Tab content container */
-/* homepage.css */
 .tab-content {
   margin-top: 20px;
   padding: 20px;
-
-  /* Make it transparent so the gradient from the body shows */
   background: transparent;
-  
-  /* Remove or reduce border and shadow if you want no “card” effect */
   border: none;
   border-radius: 0;
   box-shadow: none;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .main-title {
+    font-size: 1.8rem;
+  }
+
+  .tab-btn {
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+  }
+
+  .tab-content {
+    padding: 10px;
+  }
 }

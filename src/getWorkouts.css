@@ -1,6 +1,5 @@
 /* Main Container */
 .main-container {
-  margin-top: 20px;
   width: 95%;
   max-width: 1200px;
   margin: 20px auto;
@@ -112,5 +111,21 @@
 .workouts-container button:hover {
   background-color: #0056b3;
   transform: scale(1.02);
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .section-heading {
+    font-size: 1.6rem;
+  }
+
+  .workouts-container button {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+  }
+
+  .workout-header h4 {
+    font-size: 1rem;
+  }
 }
 

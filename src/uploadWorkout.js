@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "./apiClient";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./uploadWorkout.css";
@@ -62,7 +62,6 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       "Dumbbell Lunges",
       "Sprinter Lunges Dumbbell",
       "Sprinter Lunges Smith Machine",
-      "Dumbbell Lunges",
       "Perfect Squat Machine",
       "Perfect Squat Machine Calf Raises"
     ],
@@ -163,7 +162,6 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
         weightType: "kg",
         isAssistance: false,
       });
-      console.log("Loaded workout from local storage:", parsedWorkout);
     }
   }, []);
 
@@ -184,7 +182,6 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       currentExercise,
     };
     localStorage.setItem("currentWorkout", JSON.stringify(currentWorkoutData));
-    console.log("Saved workout to local storage:", currentWorkoutData);
   }, [workoutName, workoutDate, exercises, currentExercise]);
 
   const resetForm = () => {
@@ -286,14 +283,10 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
       })),
     };
 
-    const url = editingWorkout
-      ? `https://6a29no5ke5.execute-api.us-east-1.amazonaws.com/workoutStage1/updateWorkout`
-      : `https://6a29no5ke5.execute-api.us-east-1.amazonaws.com/workoutStage1/saveWorkout`;
+    const endpoint = editingWorkout ? "/updateWorkout" : "/saveWorkout";
 
     try {
-      console.log("Submitting workout data:", JSON.stringify(workoutData, null, 2));
-      const response = await axios.post(url, workoutData);
-      console.log("Workout saved successfully:", response.data);
+      await apiClient.post(endpoint, workoutData);
       toast.success(editingWorkout ? "Workout updated successfully!" : "Workout saved successfully!");
       onWorkoutSave();
       resetForm();
