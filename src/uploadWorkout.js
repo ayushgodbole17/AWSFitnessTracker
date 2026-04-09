@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import apiClient from "./apiClient";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./uploadWorkout.css";
 
-const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
+const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout, workouts = [] }) => {
   const [workoutName, setWorkoutName] = useState("");
-  const [workoutDate, setWorkoutDate] = useState("");
+  const [workoutDate, setWorkoutDate] = useState(
+    () => new Date().toISOString().split("T")[0]
+  );
   const [exercises, setExercises] = useState([]);
   const [currentExercise, setCurrentExercise] = useState({
     muscleGroup: "",
@@ -18,6 +20,12 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
     isAssistance: false,
   });
   const [editIndex, setEditIndex] = useState(null);
+  const [setLogging, setSetLogging] = useState(false);
+
+  // Rest timer state
+  const [restSeconds, setRestSeconds] = useState(0);
+  const [restDuration, setRestDuration] = useState(90);
+  const timerRef = useRef(null);
 
   const muscleGroups = ["Chest", "Legs", "Back", "Shoulders", "Arms", "Abs"];
   const exercisesList = {
@@ -145,6 +153,80 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
   };
   const weightTypes = ["kg", "machine"];
 
+  // Recent unique workouts for "Repeat Workout" picker
+  const recentWorkouts = useMemo(() => {
+    if (!workouts || workouts.length === 0) return [];
+    return [...workouts]
+      .sort((a, b) => new Date(b.workoutDate) - new Date(a.workoutDate))
+      .slice(0, 15);
+  }, [workouts]);
+
+  const loadWorkoutTemplate = (workout) => {
+    setWorkoutName(workout.workoutName || "");
+    setExercises(
+      workout.exercises.map((ex) => ({ ...ex }))
+    );
+    toast.success("Workout loaded — update weights and save.");
+  };
+
+  // Rest timer
+  const startTimer = useCallback((duration) => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setRestDuration(duration);
+    setRestSeconds(duration);
+    timerRef.current = setInterval(() => {
+      setRestSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  const stopTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setRestSeconds(0);
+  }, []);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
+  // Find the most recent entry for the currently selected exercise
+  const lastExerciseInfo = useMemo(() => {
+    if (!currentExercise.exercise || !workouts || workouts.length === 0) return null;
+
+    const sorted = [...workouts].sort(
+      (a, b) => new Date(b.workoutDate) - new Date(a.workoutDate)
+    );
+
+    for (const workout of sorted) {
+      const match = workout.exercises.find(
+        (ex) => ex.exercise === currentExercise.exercise
+      );
+      if (match) {
+        const date = new Date(workout.workoutDate).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
+        const weight = match.isAssistance
+          ? `${Math.abs(match.weight)} ${match.weightType} (assisted)`
+          : `${Math.abs(match.weight)} ${match.weightType}`;
+        return `Last: ${match.sets}x${match.reps} @ ${weight} on ${date}`;
+      }
+    }
+    return null;
+  }, [currentExercise.exercise, workouts]);
+
   useEffect(() => {
     // Load current workout from local storage on mount
     const storedWorkout = localStorage.getItem("currentWorkout");
@@ -227,17 +309,31 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
     } else {
       setExercises([...exercises, newExercise]);
       toast.success("Exercise added successfully!");
+      startTimer(restDuration);
     }
 
-    setCurrentExercise({
-      muscleGroup: "",
-      exercise: "",
-      sets: "",
-      reps: "",
-      weight: "",
-      weightType: "kg",
-      isAssistance: false,
-    });
+    if (setLogging) {
+      // Keep muscle group, exercise, weightType, isAssistance — clear sets/reps/weight
+      setCurrentExercise((prev) => ({
+        muscleGroup: prev.muscleGroup,
+        exercise: prev.exercise,
+        sets: "1",
+        reps: "",
+        weight: "",
+        weightType: prev.weightType,
+        isAssistance: prev.isAssistance,
+      }));
+    } else {
+      setCurrentExercise((prev) => ({
+        muscleGroup: prev.muscleGroup,
+        exercise: "",
+        sets: "",
+        reps: "",
+        weight: "",
+        weightType: "kg",
+        isAssistance: false,
+      }));
+    }
   };
 
   const editExercise = (index) => {
@@ -299,6 +395,32 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
   return (
     <div className="upload-workout-container">
       <h3>{editingWorkout ? "Edit Workout" : "Create a New Workout"}</h3>
+
+      {/* Repeat Workout Picker */}
+      {!editingWorkout && recentWorkouts.length > 0 && (
+        <div className="repeat-workout-section">
+          <label className="form-label" style={{ minWidth: "unset", textAlign: "left" }}>
+            Repeat a workout:
+          </label>
+          <select
+            className="select-input"
+            defaultValue=""
+            onChange={(e) => {
+              const idx = parseInt(e.target.value, 10);
+              if (!isNaN(idx)) loadWorkoutTemplate(recentWorkouts[idx]);
+              e.target.value = "";
+            }}
+          >
+            <option value="" disabled>Select a recent workout...</option>
+            {recentWorkouts.map((w, i) => (
+              <option key={i} value={i}>
+                {w.workoutName || "Untitled"} — {new Date(w.workoutDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })} ({w.exercises.length} exercises)
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit}>
         {/* First row: Workout Name & Date */}
         <div className="form-row">
@@ -351,6 +473,10 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
               ))}
           </select>
         </div>
+
+        {lastExerciseInfo && (
+          <p className="last-exercise-hint">{lastExerciseInfo}</p>
+        )}
 
         <div className="exercise-input-row">
           <label className="form-label">Sets:</label>
@@ -408,11 +534,51 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
           </select>
         </div>
 
+        {/* Set logging toggle */}
+        <div className="set-logging-row">
+          <label className="set-logging-label">
+            <input
+              type="checkbox"
+              checked={setLogging}
+              onChange={(e) => setSetLogging(e.target.checked)}
+            />
+            Log sets individually
+          </label>
+          {setLogging && (
+            <span className="set-logging-hint">Each add = 1 set. Exercise stays selected.</span>
+          )}
+        </div>
+
         <div className="button-group">
           <button type="button" onClick={addOrUpdateExercise}>
-            {editIndex !== null ? "Update Exercise" : "Add Exercise"}
+            {editIndex !== null ? "Update Exercise" : setLogging ? "Log Set" : "Add Exercise"}
           </button>
         </div>
+
+        {/* Rest Timer */}
+        {restSeconds > 0 && (
+          <div className="rest-timer">
+            <span className="rest-timer-display">
+              Rest: {Math.floor(restSeconds / 60)}:{String(restSeconds % 60).padStart(2, "0")}
+            </span>
+            <button type="button" className="rest-timer-stop" onClick={stopTimer}>Skip</button>
+          </div>
+        )}
+        {restSeconds === 0 && exercises.length > 0 && !timerRef.current && (
+          <div className="rest-timer-presets">
+            <span className="rest-timer-label">Rest:</span>
+            {[60, 90, 120, 180].map((s) => (
+              <button
+                key={s}
+                type="button"
+                className={`rest-preset-btn ${restDuration === s ? "active" : ""}`}
+                onClick={() => startTimer(s)}
+              >
+                {s >= 120 ? `${s / 60}m` : `${s}s`}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Current Exercises */}
         <div className="current-workout-summary">

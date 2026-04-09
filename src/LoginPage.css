@@ -1,60 +1,79 @@
+/* LoginPage.css */
+
 /* Container */
 .login-container {
-  width: 95%;
-  max-width: 500px;
-  margin: clamp(20px, 8vh, 80px) auto;
-  padding: 30px;
+  width: calc(100% - 32px);
+  max-width: 420px;
+  margin: clamp(24px, 10vh, 80px) auto;
+  padding: 32px 28px;
   background-color: #ffffff;
-  border-radius: 15px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
   box-sizing: border-box;
 }
 
 /* Card Title */
 .login-card h2 {
   text-align: center;
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 5vw, 2rem);
   color: #007bff;
-  margin-bottom: 20px;
-  font-weight: bold;
+  margin-bottom: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
 /* Input Fields */
 .input-field {
   width: 100%;
-  padding: 10px;
-  margin: 0 auto 15px auto;
+  padding: 12px 14px;
+  margin: 0 0 14px 0;
   display: block;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 1rem;
+  color: #1a202c;
+  background: #f8fafc;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   box-sizing: border-box;
+}
+
+.input-field:focus {
+  border-color: #007bff;
+  outline: none;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.12);
 }
 
 /* Button Container */
 .button-container {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   gap: 10px;
   margin-top: 20px;
 }
 
 /* Common Button Styling */
 .login-container button {
-  flex: 1;
-  padding: 12px;
-  font-size: 1.2rem;
-  font-weight: bold;
+  width: 100%;
+  padding: 13px;
+  font-size: 1rem;
+  font-weight: 700;
   color: #ffffff;
   background-color: #007bff;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+  letter-spacing: 0.3px;
 }
 
 .login-container button:hover {
   background-color: #0056b3;
-  transform: scale(1.05);
+  transform: translateY(-1px);
+}
+
+.login-container button:active {
+  transform: translateY(0);
 }
 
 /* Create Account Button */
@@ -67,20 +86,29 @@
 .login-container .create-account-btn:hover {
   background-color: #e6f7ff;
   color: #0056b3;
+  border-color: #0056b3;
 }
 
 /* Mobile */
 @media (max-width: 600px) {
   .login-container {
-    padding: 20px;
+    padding: 24px 18px;
+    margin: 16px auto;
+    border-radius: 16px;
   }
 
   .login-card h2 {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
+    margin-bottom: 18px;
+  }
+
+  .input-field {
+    padding: 11px 12px;
+    font-size: 0.95rem;
   }
 
   .login-container button {
-    font-size: 1rem;
-    padding: 10px;
+    padding: 12px;
+    font-size: 0.95rem;
   }
 }

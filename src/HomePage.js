@@ -89,6 +89,7 @@ const HomePage = ({ onLogout }) => {
           <UploadWorkout
             onWorkoutSave={handleWorkoutSave}
             editingWorkout={editingWorkout}
+            workouts={workouts}
           />
         )}
         {activeTab === "viewWorkouts" && (

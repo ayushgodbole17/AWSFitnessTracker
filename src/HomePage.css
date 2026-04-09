@@ -1,82 +1,92 @@
-/* Header Container */
+/* HomePage.css */
+
+.home-container {
+  background: transparent;
+}
+
+/* Header */
 .home-header {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding-top: 20px;
-  margin-bottom: 30px;
+  gap: 12px;
+  padding: 24px 16px 16px;
+  margin-bottom: 8px;
   background: transparent;
-}
-
-/* Main container */
-.home-container {
-  background: transparent;
-}
-
-/* Sign-Out Button */
-.sign-out-btn {
-  padding: 6px 12px;
-  font-size: 1rem;
-  background-color: #d9534f;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out;
-}
-
-.sign-out-btn:hover {
-  background-color: #c9302c;
-  transform: scale(1.02);
 }
 
 /* Main title */
 .main-title {
-  font-size: 2.8rem;
-  font-weight: bold;
+  font-size: clamp(1.8rem, 6vw, 2.8rem);
+  font-weight: 800;
   color: #058eff;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 2px 8px rgba(5, 142, 255, 0.2);
+  letter-spacing: -0.5px;
+  text-align: center;
 }
 
-/* Tabs container */
+/* Sign-Out Button */
+.sign-out-btn {
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  letter-spacing: 0.3px;
+}
+
+.sign-out-btn:hover {
+  background-color: #dc2626;
+  transform: scale(1.03);
+}
+
+/* Tabs container — horizontal scroll on mobile */
 .tabs {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 10px;
-  margin: 0 auto 20px auto;
+  gap: 8px;
+  margin: 0 auto 16px auto;
   max-width: 1200px;
-  padding: 0 20px;
+  padding: 4px 16px;
 }
 
 .tab-btn {
-  padding: 8px 16px;
-  font-size: 1rem;
-  background-color: #f8f9fa;
+  padding: 9px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background-color: rgba(255, 255, 255, 0.75);
   color: #007bff;
-  border: 1px solid #dee2e6;
-  border-radius: 5px;
+  border: 1.5px solid #bee3f8;
+  border-radius: 50px;
   cursor: pointer;
-  transition: all 0.3s ease-in-out;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
 }
 
 .tab-btn.active {
   background-color: #007bff;
   color: #ffffff;
   border-color: #007bff;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.35);
 }
 
 .tab-btn:hover:not(.active) {
-  background-color: #e2e6ea;
+  background-color: #e0f0ff;
+  border-color: #90cdf4;
   color: #0056b3;
 }
 
-/* Tab content container */
+/* Tab content */
 .tab-content {
-  margin-top: 20px;
-  padding: 20px;
+  margin-top: 8px;
+  padding: 16px;
   background: transparent;
   border: none;
   border-radius: 0;
@@ -85,17 +95,21 @@
 
 /* Mobile */
 @media (max-width: 600px) {
-  .main-title {
-    font-size: 1.8rem;
+  .home-header {
+    padding: 20px 16px 12px;
+  }
+
+  .tabs {
+    padding: 4px 12px;
+    gap: 6px;
   }
 
   .tab-btn {
-    flex: 1;
-    min-width: 100px;
-    text-align: center;
+    padding: 8px 14px;
+    font-size: 0.82rem;
   }
 
   .tab-content {
-    padding: 10px;
+    padding: 8px;
   }
 }

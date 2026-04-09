@@ -1,43 +1,46 @@
+/* getWorkouts.css */
+
 /* Main Container */
 .main-container {
-  width: 95%;
-  max-width: 1200px;
-  margin: 20px auto;
-  padding: 20px;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 8px 4px;
 }
 
 /* Section Divider */
 .section-divider {
   text-align: center;
-  margin: 15px 0;
+  margin: 16px 0;
   padding: 5px 0;
-  border-bottom: 2px solid #007bff;
+  border-bottom: 2px solid #bee3f8;
 }
 
 /* Section Heading */
 .section-heading {
-  font-size: 2rem;
+  font-size: clamp(1.4rem, 5vw, 2rem);
   color: #007bff;
-  font-weight: bold;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  font-weight: 800;
   text-align: center;
   margin-bottom: 20px;
+  letter-spacing: -0.3px;
 }
 
 /* Workouts Container */
 .workouts-container {
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  /*background: linear-gradient(to right, #f8f9fa, #ffffff);*/
+  padding: 12px;
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
 }
 
-/* Subheading in workouts container */
+/* Subheading */
 .workouts-container h3 {
-  color: #17a2b8;
-  margin-bottom: 10px;
-  font-weight: bold;
-  font-size: 1.1rem;
+  color: #0284c7;
+  margin-bottom: 12px;
+  font-weight: 700;
+  font-size: 1rem;
 }
 
 /* Workout List */
@@ -49,83 +52,99 @@
 /* Individual workout item */
 .workouts-container li {
   margin-bottom: 10px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  padding: 14px 16px;
+  border: 1.5px solid #e8f0fe;
+  border-radius: 12px;
   background: #ffffff;
-  /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);*/
-  transition: transform 0.2s ease-in-out, background 0.2s ease-in-out;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .workouts-container li:hover {
-  background: #f1f1f1;
-  transform: scale(1.01);
+  background: #f8fbff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 123, 255, 0.1);
 }
 
 /* Workout header (Name + Date) */
 .workout-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 5px;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
 }
 
 .workout-header h4 {
-  color: #343a40;
-  font-weight: bold;
-  font-size: 1.1rem;
+  color: #1e3a5f;
+  font-weight: 700;
+  font-size: 1rem;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
 }
 
 .workout-header .workout-date {
-  color: #6c757d;
-  font-size: 0.8rem;
+  color: #718096;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  padding-top: 2px;
 }
 
 /* Exercises list */
 .exercise-list {
-  padding-left: 15px;
+  padding-left: 12px;
 }
 
 .exercise-list .exercise-item {
   margin-bottom: 3px;
-  font-size: 0.85rem;
-  line-height: 1.2;
+  font-size: 0.84rem;
+  color: #4a5568;
+  line-height: 1.4;
 }
 
-/* Buttons used within the workouts container */
-/* Scope button styles to the workouts container */
+/* Buttons inside workouts container */
 .workouts-container button {
-  margin-right: 5px;
+  margin-right: 6px;
+  margin-top: 6px;
   background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 5px;
-  padding: 4px 10px;
+  border-radius: 7px;
+  padding: 6px 14px;
   font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out;
+  transition: background-color 0.2s ease, transform 0.15s ease;
 }
-
-
 
 .workouts-container button:hover {
   background-color: #0056b3;
-  transform: scale(1.02);
+  transform: translateY(-1px);
 }
 
 /* Mobile */
 @media (max-width: 600px) {
-  .section-heading {
-    font-size: 1.6rem;
+  .main-container {
+    padding: 4px 0;
+  }
+
+  .workouts-container {
+    padding: 10px;
+    border-radius: 12px;
   }
 
   .workouts-container button {
-    padding: 10px 14px;
-    font-size: 0.9rem;
+    padding: 8px 14px;
+    font-size: 0.85rem;
   }
 
-  .workout-header h4 {
-    font-size: 1rem;
+  .workout-header {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .workout-header .workout-date {
+    font-size: 0.75rem;
   }
 }
-

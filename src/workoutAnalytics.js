@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useMemo } from "react";
 import axios from "axios";
 import DOMPurify from "dompurify";
 import { transformWorkouts } from "./utils";
@@ -57,22 +57,20 @@ const calculatePercentageChange = (current, previous) => {
 const getWeightLabel = (weight) =>
   weight < 0 ? `${Math.abs(weight)} kg (assisted)` : `${weight} kg`;
 
-const ProgressionChart = ({ progression }) => {
-  const sortedProg = [...progression].sort((a, b) => a.date - b.date);
-
-  const labels = sortedProg.map((entry) =>
-    entry.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+const ProgressionChart = React.memo(({ progression }) => {
+  const sortedProg = useMemo(
+    () => [...progression].sort((a, b) => a.date - b.date),
+    [progression]
   );
-  const totalVolumeData = sortedProg.map((entry) => entry.totalVolume.toFixed(2));
-  const avgVolumeData = sortedProg.map((entry) => entry.avgVolumePerSet.toFixed(2));
-  const maxWeightData = sortedProg.map((entry) => Math.abs(entry.maxWeight).toFixed(2));
 
-  const data = {
-    labels,
+  const data = useMemo(() => ({
+    labels: sortedProg.map((entry) =>
+      entry.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    ),
     datasets: [
       {
         label: "Total Volume (kg)",
-        data: totalVolumeData,
+        data: sortedProg.map((entry) => entry.totalVolume.toFixed(2)),
         yAxisID: "yVolume",
         borderColor: "#007bff",
         backgroundColor: "rgba(0, 123, 255, 0.3)",
@@ -80,7 +78,7 @@ const ProgressionChart = ({ progression }) => {
       },
       {
         label: "Avg Volume/Set (kg)",
-        data: avgVolumeData,
+        data: sortedProg.map((entry) => entry.avgVolumePerSet.toFixed(2)),
         yAxisID: "yVolume",
         borderColor: "#28a745",
         backgroundColor: "rgba(40, 167, 69, 0.3)",
@@ -88,16 +86,16 @@ const ProgressionChart = ({ progression }) => {
       },
       {
         label: "Max Weight (kg)",
-        data: maxWeightData,
+        data: sortedProg.map((entry) => Math.abs(entry.maxWeight).toFixed(2)),
         yAxisID: "yWeight",
         borderColor: "#ff6347",
         backgroundColor: "rgba(255, 99, 71, 0.3)",
         tension: 0.2
       }
     ]
-  };
+  }), [sortedProg]);
 
-  const options = {
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     interaction: { mode: "index", intersect: false },
@@ -111,28 +109,28 @@ const ProgressionChart = ({ progression }) => {
       }
     },
     plugins: {
-      legend: { position: "top" },
+      legend: { position: "top", labels: { boxWidth: 12, font: { size: 11 } } },
       title: { display: false }
     }
-  };
+  }), []);
 
   return (
     <div className="chart-container">
       <Line data={data} options={options} />
     </div>
   );
-};
+});
 
 const WorkoutAnalytics = ({ workouts }) => {
-  const [analytics, setAnalytics] = useState({
-    muscleGroupAnalytics: {},
-    workoutFrequency: "",
-  });
   const [expandedExercises, setExpandedExercises] = useState({});
   const [aiInsights, setAiInsights] = useState("");
   const [loadingAI, setLoadingAI] = useState(false);
 
-  const computeAnalytics = useCallback(() => {
+  const analytics = useMemo(() => {
+    if (!workouts || workouts.length === 0) {
+      return { muscleGroupAnalytics: {}, workoutFrequency: "" };
+    }
+
     const overallAnalytics = {};
     const workoutDatesSet = new Set();
 
@@ -262,14 +260,8 @@ const WorkoutAnalytics = ({ workouts }) => {
       });
     });
 
-    setAnalytics({ muscleGroupAnalytics, workoutFrequency });
+    return { muscleGroupAnalytics, workoutFrequency };
   }, [workouts]);
-
-  useEffect(() => {
-    if (workouts.length > 0) {
-      computeAnalytics();
-    }
-  }, [workouts, computeAnalytics]);
 
   const toggleExerciseDetails = (muscleGroup, exerciseName) => {
     const key = `${muscleGroup}-${exerciseName}`;

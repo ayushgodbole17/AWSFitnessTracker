@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { toast } from "react-toastify";
 import "./getWorkouts.css";
 import apiClient from "./apiClient";
@@ -37,9 +37,12 @@ const GetWorkouts = ({ workouts, onEditWorkout, onDeleteSuccess }) => {
   };
 
   // Sort workouts by date in descending order (most recent first)
-  const sortedWorkouts = workouts
-    ? [...workouts].sort((a, b) => new Date(b.workoutDate) - new Date(a.workoutDate))
-    : [];
+  const sortedWorkouts = useMemo(
+    () => workouts
+      ? [...workouts].sort((a, b) => new Date(b.workoutDate) - new Date(a.workoutDate))
+      : [],
+    [workouts]
+  );
 
   return (
     <div className="main-container">

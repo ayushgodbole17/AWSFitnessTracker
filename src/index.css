@@ -8,8 +8,8 @@ body {
 }
 
 body {
-  background: linear-gradient(to bottom, #83d4ec, #f8f9fa);
+  background: linear-gradient(160deg, #83d4ec 0%, #c9e8f5 40%, #f0f4f8 100%);
   background-repeat: no-repeat;
-  background-attachment: fixed;
+  background-attachment: scroll; /* fixed breaks on iOS Safari */
   min-height: 100vh;
 }
