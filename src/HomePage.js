@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import apiClient from "./apiClient";
+import { toast } from "react-toastify";
 
 import UploadWorkout from "./uploadWorkout";
 import GetWorkouts from "./getWorkouts";
 import WorkoutAnalytics from "./workoutAnalytics";
-import Chatbot from "./chatbot";
 import "./HomePage.css";
-import "./chatbot.css";
 
 const HomePage = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState("uploadWorkout");
@@ -22,7 +21,10 @@ const HomePage = ({ onLogout }) => {
 
   const fetchAllWorkouts = async () => {
     const email = localStorage.getItem("email");
-    if (!email) return;
+    if (!email) {
+      setLoadingWorkouts(false);
+      return;
+    }
 
     setLoadingWorkouts(true);
     try {
@@ -32,6 +34,7 @@ const HomePage = ({ onLogout }) => {
       }
     } catch (error) {
       console.error("Error fetching workouts:", error);
+      toast.error("Failed to load workouts. Please try again.");
     } finally {
       setLoadingWorkouts(false);
     }
@@ -82,9 +85,6 @@ const HomePage = ({ onLogout }) => {
 
       {/* Tab Content */}
       <div className="tab-content">
-        {loadingWorkouts && activeTab !== "uploadWorkout" && (
-          <p style={{ textAlign: "center", color: "#6c757d" }}>Loading workouts...</p>
-        )}
         {activeTab === "uploadWorkout" && (
           <UploadWorkout
             onWorkoutSave={handleWorkoutSave}
@@ -93,19 +93,25 @@ const HomePage = ({ onLogout }) => {
           />
         )}
         {activeTab === "viewWorkouts" && (
-          <GetWorkouts
-            workouts={workouts}
-            onEditWorkout={handleEditWorkout}
-            onDeleteSuccess={() => setRefreshTrigger((prev) => prev + 1)}
-          />
+          loadingWorkouts ? (
+            <p className="loading-msg">Loading workouts...</p>
+          ) : (
+            <GetWorkouts
+              workouts={workouts}
+              onEditWorkout={handleEditWorkout}
+              onDeleteSuccess={() => setRefreshTrigger((prev) => prev + 1)}
+            />
+          )
         )}
-        {activeTab === "analytics" && <WorkoutAnalytics workouts={workouts} />}
+        {activeTab === "analytics" && (
+          loadingWorkouts ? (
+            <p className="loading-msg">Loading workouts...</p>
+          ) : (
+            <WorkoutAnalytics workouts={workouts} />
+          )
+        )}
       </div>
 
-      {/* Chatbot Section */}
-      <div className="chatbot-container">
-        <Chatbot workouts={workouts} />
-      </div>
     </div>
   );
 };

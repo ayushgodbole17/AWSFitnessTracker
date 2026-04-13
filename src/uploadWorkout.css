@@ -1,37 +1,36 @@
-/* uploadWorkout.css */
+/* uploadWorkout.css — mobile-first */
 
 .upload-workout-container {
   width: 100%;
   max-width: 720px;
-  margin: 16px auto;
-  padding: 0 4px;
+  margin: 8px auto;
+  padding: 0 10px;
   background: transparent;
 }
 
 .upload-workout-container h3 {
-  font-size: clamp(1.4rem, 4vw, 1.8rem);
-  margin-bottom: 20px;
+  font-size: clamp(1.3rem, 4vw, 1.8rem);
+  margin-bottom: 16px;
   text-align: center;
   color: #007bff;
   font-weight: 800;
   letter-spacing: -0.3px;
 }
 
-/* First row: Workout Name & Date */
+/* First row: Workout Name & Date — stacked on phone */
 .form-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 20px;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
 .exercise-input {
-  flex: 1;
-  min-width: 140px;
-  padding: 10px 12px;
+  width: 100%;
+  padding: 11px 12px;
   border: 1.5px solid #e2e8f0;
   border-radius: 8px;
-  font-size: 0.95rem;
+  font-size: 1rem;
   background: #fff;
   color: #1a202c;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -47,45 +46,51 @@
 .upload-workout-container .exercise-card {
   background: #ffffff;
   border-radius: 14px;
-  padding: 20px 18px;
-  margin-bottom: 20px;
+  padding: 16px 14px;
+  margin-bottom: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   border: 1px solid #e8f0fe;
 }
 
 .upload-workout-container .exercise-card h4 {
   margin-top: 0;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   font-size: 1.05rem;
   font-weight: 700;
   color: #2d3748;
 }
 
-/* Each input row inside the exercise card */
+/* Section heading inside form (e.g. "Add Exercise") */
+.upload-workout-container form > h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 14px 0 10px;
+}
+
+/* Each input row — stacked by default for phone */
 .exercise-input-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 12px;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+  margin-bottom: 10px;
 }
 
 .form-label {
   font-weight: 600;
   font-size: 0.9rem;
   color: #4a5568;
-  min-width: 90px;
-  text-align: right;
+  text-align: left;
 }
 
 .select-input,
 .short-input {
-  flex: 1;
-  min-width: 120px;
-  padding: 10px 12px;
+  width: 100%;
+  padding: 11px 12px;
   border: 1.5px solid #e2e8f0;
   border-radius: 8px;
-  font-size: 0.95rem;
+  font-size: 1rem;
   background: #f8fafc;
   color: #1a202c;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -106,21 +111,22 @@
   background: #e6f3ff;
   padding: 8px 12px;
   border-radius: 8px;
-  margin: -4px 0 12px;
+  margin: -2px 0 10px;
   font-weight: 600;
 }
 
-/* Button row */
+/* Button row — full-width on phone */
 .button-group {
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 8px;
   margin-top: 4px;
 }
 
 .button-group button {
-  padding: 9px 18px;
-  font-size: 0.9rem;
+  width: 100%;
+  padding: 12px;
+  font-size: 0.95rem;
   font-weight: 600;
   border: none;
   border-radius: 8px;
@@ -137,7 +143,7 @@
 
 /* Current Exercises Section */
 .current-workout-summary h4 {
-  margin: 16px 0 8px;
+  margin: 14px 0 8px;
   font-size: 1rem;
   font-weight: 700;
   color: #2d3748;
@@ -149,21 +155,49 @@
 }
 
 .current-workout-summary li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 6px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   background: #f0f7ff;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: #2d3748;
+}
+
+.current-workout-summary li button {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  background: #007bff;
+  color: #fff;
+}
+
+.current-workout-summary li button:hover {
+  background: #0056b3;
+}
+
+.current-workout-summary li button:last-child {
+  background: #ef4444;
+}
+
+.current-workout-summary li button:last-child:hover {
+  background: #dc2626;
 }
 
 /* Repeat Workout Picker */
 .repeat-workout-section {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 14px;
   padding: 12px 14px;
   background: #f0f7ff;
   border-radius: 10px;
@@ -174,7 +208,7 @@
 .set-logging-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 8px;
   flex-wrap: wrap;
 }
@@ -190,8 +224,8 @@
 }
 
 .set-logging-label input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   accent-color: #007bff;
 }
 
@@ -221,7 +255,7 @@
 }
 
 .rest-timer-stop {
-  padding: 6px 14px;
+  padding: 8px 16px;
   font-size: 0.85rem;
   font-weight: 600;
   border: none;
@@ -239,6 +273,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin: 10px 0;
 }
@@ -250,8 +285,8 @@
 }
 
 .rest-preset-btn {
-  padding: 6px 12px;
-  font-size: 0.82rem;
+  padding: 8px 14px;
+  font-size: 0.85rem;
   font-weight: 600;
   border: 1.5px solid #e2e8f0;
   border-radius: 20px;
@@ -276,7 +311,7 @@
 .upload-workout-container form > button[type="submit"] {
   display: block;
   width: 100%;
-  padding: 13px;
+  padding: 14px;
   font-size: 1rem;
   font-weight: 700;
   background: #007bff;
@@ -293,50 +328,54 @@
   transform: translateY(-1px);
 }
 
-/* Mobile */
-@media (max-width: 600px) {
+/* Desktop */
+@media (min-width: 768px) {
   .upload-workout-container {
-    margin: 8px auto;
-    padding: 0;
+    margin: 16px auto;
+    padding: 0 16px;
+  }
+
+  .form-row {
+    flex-direction: row;
+    gap: 12px;
+  }
+
+  .exercise-input {
+    flex: 1;
+    min-width: 140px;
+    width: auto;
   }
 
   .exercise-input-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .form-label {
-    text-align: left;
-    min-width: unset;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
   }
 
   .select-input,
-  .short-input,
-  .exercise-input {
-    min-width: unset;
-    width: 100%;
+  .short-input {
+    flex: 1;
+    min-width: 120px;
+    width: auto;
   }
 
   .button-group {
-    flex-direction: column;
+    flex-direction: row;
   }
 
   .button-group button {
-    width: 100%;
-    padding: 12px;
-    font-size: 0.95rem;
-  }
-
-  .upload-workout-container .exercise-card {
-    padding: 16px 14px;
+    width: auto;
+    padding: 9px 18px;
+    font-size: 0.9rem;
   }
 
   .repeat-workout-section {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
   }
 
-  .rest-timer-presets {
-    flex-wrap: wrap;
+  .upload-workout-container .exercise-card {
+    padding: 20px 18px;
   }
 }

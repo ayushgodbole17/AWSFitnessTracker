@@ -1,13 +1,13 @@
-/* LoginPage.css */
+/* LoginPage.css — mobile-first */
 
 /* Container */
 .login-container {
   width: calc(100% - 32px);
   max-width: 420px;
-  margin: clamp(24px, 10vh, 80px) auto;
-  padding: 32px 28px;
+  margin: 16px auto;
+  padding: 24px 18px;
   background-color: #ffffff;
-  border-radius: 20px;
+  border-radius: 16px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
   box-sizing: border-box;
 }
@@ -15,18 +15,18 @@
 /* Card Title */
 .login-card h2 {
   text-align: center;
-  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-size: clamp(1.4rem, 5vw, 2rem);
   color: #007bff;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   font-weight: 800;
   letter-spacing: -0.5px;
 }
 
-/* Input Fields */
+/* Input Fields — 16px font to prevent iOS zoom */
 .input-field {
   width: 100%;
   padding: 12px 14px;
-  margin: 0 0 14px 0;
+  margin: 0 0 12px 0;
   display: block;
   border: 1.5px solid #e2e8f0;
   border-radius: 10px;
@@ -49,13 +49,13 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 20px;
+  margin-top: 18px;
 }
 
 /* Common Button Styling */
 .login-container button {
   width: 100%;
-  padding: 13px;
+  padding: 14px;
   font-size: 1rem;
   font-weight: 700;
   color: #ffffff;
@@ -89,26 +89,23 @@
   border-color: #0056b3;
 }
 
-/* Mobile */
-@media (max-width: 600px) {
+/* Desktop */
+@media (min-width: 768px) {
   .login-container {
-    padding: 24px 18px;
-    margin: 16px auto;
-    border-radius: 16px;
+    margin: clamp(24px, 10vh, 80px) auto;
+    padding: 32px 28px;
+    border-radius: 20px;
   }
 
   .login-card h2 {
-    font-size: 1.4rem;
-    margin-bottom: 18px;
+    margin-bottom: 24px;
   }
 
   .input-field {
-    padding: 11px 12px;
-    font-size: 0.95rem;
+    margin-bottom: 14px;
   }
 
-  .login-container button {
-    padding: 12px;
-    font-size: 0.95rem;
+  .button-container {
+    margin-top: 20px;
   }
 }

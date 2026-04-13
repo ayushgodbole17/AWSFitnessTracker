@@ -1,4 +1,4 @@
-/* HomePage.css */
+/* HomePage.css — mobile-first */
 
 .home-container {
   background: transparent;
@@ -10,15 +10,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 24px 16px 16px;
-  margin-bottom: 8px;
+  gap: 10px;
+  padding: 16px 12px 10px;
+  margin-bottom: 4px;
   background: transparent;
 }
 
 /* Main title */
 .main-title {
-  font-size: clamp(1.8rem, 6vw, 2.8rem);
+  font-size: clamp(1.6rem, 6vw, 2.8rem);
   font-weight: 800;
   color: #058eff;
   text-shadow: 0 2px 8px rgba(5, 142, 255, 0.2);
@@ -45,20 +45,20 @@
   transform: scale(1.03);
 }
 
-/* Tabs container — horizontal scroll on mobile */
+/* Tabs — phone default */
 .tabs {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 auto 16px auto;
+  gap: 6px;
+  margin: 0 auto 12px auto;
   max-width: 1200px;
-  padding: 4px 16px;
+  padding: 4px 12px;
 }
 
 .tab-btn {
-  padding: 9px 18px;
-  font-size: 0.9rem;
+  padding: 9px 16px;
+  font-size: 0.85rem;
   font-weight: 600;
   background-color: rgba(255, 255, 255, 0.75);
   color: #007bff;
@@ -83,33 +83,45 @@
   color: #0056b3;
 }
 
-/* Tab content */
+/* Tab content — compact for phone */
 .tab-content {
-  margin-top: 8px;
-  padding: 16px;
+  margin-top: 4px;
+  padding: 8px;
   background: transparent;
   border: none;
   border-radius: 0;
   box-shadow: none;
 }
 
-/* Mobile */
-@media (max-width: 600px) {
+/* Loading message */
+.loading-msg {
+  text-align: center;
+  color: #6c757d;
+  padding: 40px 0;
+  font-size: 1rem;
+}
+
+/* Desktop */
+@media (min-width: 768px) {
   .home-header {
-    padding: 20px 16px 12px;
+    padding: 24px 16px 16px;
+    gap: 12px;
+    margin-bottom: 8px;
   }
 
   .tabs {
-    padding: 4px 12px;
-    gap: 6px;
+    gap: 8px;
+    padding: 4px 16px;
+    margin-bottom: 16px;
   }
 
   .tab-btn {
-    padding: 8px 14px;
-    font-size: 0.82rem;
+    padding: 9px 18px;
+    font-size: 0.9rem;
   }
 
   .tab-content {
-    padding: 8px;
+    margin-top: 8px;
+    padding: 16px;
   }
 }

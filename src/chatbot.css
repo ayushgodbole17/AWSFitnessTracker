@@ -1,15 +1,15 @@
-/* chatbot.css */
+/* chatbot.css — mobile-first */
 
 .chat-widget {
   position: fixed;
-  bottom: 20px;
-  right: 16px;
-  width: 300px;
-  max-width: calc(100vw - 32px);
-  max-height: 520px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-height: 72vh;
   border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.18);
   background-color: #ffffff;
   display: flex;
   flex-direction: column;
@@ -19,8 +19,8 @@
 }
 
 .chat-widget-expanded {
-  width: 380px;
-  max-width: calc(100vw - 32px);
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Header */
@@ -69,14 +69,14 @@
 /* Chat Body */
 .chat-body {
   flex-grow: 1;
-  padding: 12px;
+  padding: 10px;
   overflow-y: auto;
   font-size: 0.95rem;
-  max-height: 380px;
+  max-height: 50vh;
 }
 
 .chat-history {
-  max-height: 340px;
+  max-height: 45vh;
   overflow-y: auto;
   margin-bottom: 8px;
   display: flex;
@@ -107,7 +107,7 @@
   border-bottom-left-radius: 4px;
 }
 
-/* Chat Input */
+/* Chat Input — 16px font to prevent iOS zoom */
 .chat-input-container {
   padding: 10px 12px;
   border-top: 1px solid #e2e8f0;
@@ -118,10 +118,10 @@
 
 .chat-input {
   flex-grow: 1;
-  padding: 10px 12px;
+  padding: 11px 12px;
   border: 1.5px solid #e2e8f0;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 1rem;
   background: #fff;
   color: #2d3748;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -134,13 +134,13 @@
 }
 
 .chat-send-btn {
-  padding: 10px 16px;
+  padding: 11px 18px;
   background-color: #007bff;
   color: #fff;
   border: none;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.15s ease;
   white-space: nowrap;
@@ -157,27 +157,29 @@
   transform: none;
 }
 
-/* Mobile — bottom sheet */
-@media (max-width: 480px) {
+/* Desktop — floating widget */
+@media (min-width: 768px) {
   .chat-widget {
-    width: 100%;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 16px 16px 0 0;
-    max-height: 72vh;
+    width: 300px;
+    bottom: 20px;
+    right: 16px;
+    left: auto;
+    max-height: 520px;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
   }
 
   .chat-widget-expanded {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .chat-history {
-    max-height: 45vh;
+    width: 380px;
+    max-width: calc(100vw - 32px);
   }
 
   .chat-body {
-    max-height: 50vh;
+    padding: 12px;
+    max-height: 380px;
+  }
+
+  .chat-history {
+    max-height: 340px;
   }
 }
