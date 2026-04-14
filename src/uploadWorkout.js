@@ -83,6 +83,7 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout, workouts = []
       "Straight Arm Cable Pulldown",
       "Dumbbell Rows",
       "Barbell Rows",
+      "Seated Rows",
       "Cable Rows",
       "Single Arm Cable Rows",
       "T Bar Row",
@@ -142,6 +143,7 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout, workouts = []
       "Reverse Pec Deck Flys Sideways",
       "Reverse Cable Crossovers",
       "Rear Delt Bench Flys Dumbbell",
+      "One Arm Cable Crossovers",
     ],
     Abs: [
       "Crunch Machine",
