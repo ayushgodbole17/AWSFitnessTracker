@@ -27,17 +27,31 @@ const HomePage = ({ onLogout }) => {
     }
 
     setLoadingWorkouts(true);
-    try {
-      const response = await apiClient.get("/GetPastWorkouts", { params: { email } });
-      if (response.data && Array.isArray(response.data)) {
-        setWorkouts(response.data);
+    const delays = [0, 500, 1500];
+    let lastError = null;
+
+    for (let attempt = 0; attempt < delays.length; attempt++) {
+      if (delays[attempt] > 0) {
+        await new Promise((r) => setTimeout(r, delays[attempt]));
       }
-    } catch (error) {
-      console.error("Error fetching workouts:", error);
-      toast.error("Failed to load workouts. Please try again.");
-    } finally {
-      setLoadingWorkouts(false);
+      try {
+        const response = await apiClient.get("/GetPastWorkouts", { params: { email } });
+        if (response.data && Array.isArray(response.data)) {
+          setWorkouts(response.data);
+        }
+        setLoadingWorkouts(false);
+        return;
+      } catch (error) {
+        lastError = error;
+        const status = error.response?.status;
+        const isTransient = !error.response || (status >= 500 && status < 600);
+        if (!isTransient) break;
+      }
     }
+
+    console.error("Error fetching workouts:", lastError);
+    toast.error("Failed to load workouts. Please try again.");
+    setLoadingWorkouts(false);
   };
 
   // Switch to "uploadWorkout" tab after editing

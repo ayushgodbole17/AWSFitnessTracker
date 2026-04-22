@@ -106,8 +106,15 @@ export const signIn = async (email, password) => {
     const response = await client.send(command);
 
     // Save tokens in localStorage (adjust as needed for your app)
+    const auth = response.AuthenticationResult;
     localStorage.setItem("email", email);
-    localStorage.setItem("accessToken", response.AuthenticationResult.AccessToken);
+    localStorage.setItem("accessToken", auth.AccessToken);
+    if (auth.RefreshToken) {
+      localStorage.setItem("refreshToken", auth.RefreshToken);
+    }
+    if (auth.IdToken) {
+      localStorage.setItem("idToken", auth.IdToken);
+    }
     localStorage.setItem("isAuthenticated", "true");
 
     return "Sign-in successful!";
@@ -123,6 +130,42 @@ export const signIn = async (email, password) => {
  */
 export const getCurrentUser = () => {
   return localStorage.getItem("email") || null;
+};
+
+/**
+ * Refresh Access Token
+ * Uses the stored Cognito refresh token to obtain a new access token.
+ * On failure, clears auth state and throws so callers can redirect to login.
+ */
+export const refreshAccessToken = async () => {
+  const refreshToken = localStorage.getItem("refreshToken");
+  if (!refreshToken) {
+    signOut();
+    throw new Error("No refresh token available.");
+  }
+
+  try {
+    const command = new InitiateAuthCommand({
+      ClientId: CLIENT_ID,
+      AuthFlow: "REFRESH_TOKEN_AUTH",
+      AuthParameters: {
+        REFRESH_TOKEN: refreshToken,
+      },
+    });
+
+    const response = await client.send(command);
+    const auth = response.AuthenticationResult;
+    // Refresh flow returns a new AccessToken (and usually IdToken); RefreshToken is not reissued.
+    localStorage.setItem("accessToken", auth.AccessToken);
+    if (auth.IdToken) {
+      localStorage.setItem("idToken", auth.IdToken);
+    }
+    return auth.AccessToken;
+  } catch (error) {
+    console.error("Token Refresh Error:", JSON.stringify(error, null, 2));
+    signOut();
+    throw error;
+  }
 };
 
 /**
