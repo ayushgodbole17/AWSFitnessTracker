@@ -1,4 +1,118 @@
-/* index.css */
+/* index.css — design tokens + base styles */
+
+:root {
+  /* Brand */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-deep: #1e40af;
+  --color-primary-soft: #eff6ff;
+  --color-primary-tint: #dbeafe;
+  --color-primary-border: #bfdbfe;
+  --color-primary-shadow: rgba(37, 99, 235, 0.12);
+  --color-primary-shadow-strong: rgba(37, 99, 235, 0.30);
+
+  /* Status */
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-danger-deep: #991b1b;
+  --color-danger-soft: #fee2e2;
+
+  --color-success: #16a34a;
+  --color-success-deep: #166534;
+  --color-success-soft: #dcfce7;
+
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+  --color-warning-deep: #92400e;
+  --color-warning-soft: #fffbeb;
+  --color-warning-border: #fcd34d;
+
+  /* Neutrals */
+  --color-text: #0f172a;
+  --color-text-strong: #1e293b;
+  --color-text-muted: #475569;
+  --color-text-subtle: #64748b;
+  --color-text-disabled: #94a3b8;
+  --color-border: #e2e8f0;
+  --color-border-soft: #eff2f7;
+  --color-border-strong: #cbd5e1;
+  --color-disabled: #cbd5e1;
+  --color-on-tint: #1e3a8a;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+  --color-surface-translucent: rgba(255, 255, 255, 0.85);
+  --color-surface-translucent-soft: rgba(255, 255, 255, 0.65);
+  --color-surface-translucent-strong: rgba(255, 255, 255, 0.95);
+  --color-grid-line: #eeeeee;
+  --color-grid-axis: #888888;
+
+  /* Background gradient stops */
+  --color-bg-grad-1: #dbeafe;
+  --color-bg-grad-2: #eff6ff;
+  --color-bg-grad-3: #f8fafc;
+
+  /* Spacing scale (4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-pill: 999px;
+
+  /* Type */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.85rem;
+  --font-size-md: 0.9rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-black: 800;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.10);
+  --shadow-up: 0 -2px 14px rgba(15, 23, 42, 0.08);
+
+  /* Focus ring */
+  --focus-ring: 0 0 0 3px var(--color-primary-shadow);
+
+  /* Motion */
+  --transition-fast: 0.12s ease;
+  --transition-base: 0.18s ease;
+
+  /* Layout */
+  --tap-target: 44px;
+  --header-height: 56px;
+  --bottom-nav-height: 64px;
+  --content-max-width: 480px;
+}
+
+/* Base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
 html,
 body {
@@ -8,8 +122,42 @@ body {
 }
 
 body {
-  background: linear-gradient(160deg, #83d4ec 0%, #c9e8f5 40%, #f0f4f8 100%);
-  background-repeat: no-repeat;
-  background-attachment: scroll; /* fixed breaks on iOS Safari */
+  margin: 0;
+  background: var(--color-bg-grad-3);
   min-height: 100vh;
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
+/* Fixed-position gradient layer: stays anchored to viewport so scrolling past
+   the document height never reveals white. iOS Safari address-bar collapse
+   doesn't affect it either. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    var(--color-bg-grad-1) 0%,
+    var(--color-bg-grad-2) 35%,
+    var(--color-bg-grad-3) 100%
+  );
+  z-index: -1;
+  pointer-events: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }

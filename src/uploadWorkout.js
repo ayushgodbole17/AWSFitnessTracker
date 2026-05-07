@@ -1,300 +1,134 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import apiClient from "./apiClient";
+import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import { Clock, Pencil, Trash2, Timer, X } from "lucide-react";
 import "react-toastify/dist/ReactToastify.css";
+
+import { EXERCISES_BY_GROUP, MUSCLE_GROUPS, WEIGHT_TYPES } from "./data/exercises";
+import { useRestTimer } from "./hooks/useRestTimer";
+import { useElapsed } from "./hooks/useElapsed";
+import { clearDraft, loadDraft, useFormDraft } from "./hooks/useFormDraft";
+import { useSaveWorkout, useUpdateWorkout, useWorkouts } from "./hooks/useWorkouts";
+import { toSignedWeight } from "./lib/weight";
+import { computeDurationSeconds, formatDuration, formatTimeOfDay } from "./lib/duration";
+import SegmentedControl from "./components/SegmentedControl";
+import ChipRow from "./components/ChipRow";
+import IconButton from "./components/IconButton";
 import "./uploadWorkout.css";
 
-const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout, workouts = [] }) => {
+const DRAFT_KEY = "currentWorkout";
+const REST_PRESETS = [60, 90, 120, 180];
+const EMPTY_EXERCISE = {
+  muscleGroup: "",
+  exercise: "",
+  sets: "",
+  reps: "",
+  weight: "",
+  weightType: "kg",
+  isAssistance: false,
+};
+
+const todayISO = () => new Date().toISOString().split("T")[0];
+
+const formatRest = (s) =>
+  `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+const formatPreset = (s) => (s >= 120 ? `${s / 60}m` : `${s}s`);
+
+const formatShortDate = (iso) =>
+  new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout }) => {
+  const { data: workouts = [] } = useWorkouts();
+  const saveMutation = useSaveWorkout();
+  const updateMutation = useUpdateWorkout();
+  const isSubmitting = saveMutation.isPending || updateMutation.isPending;
+
   const [workoutName, setWorkoutName] = useState("");
-  const [workoutDate, setWorkoutDate] = useState(
-    () => new Date().toISOString().split("T")[0]
-  );
+  const [workoutDate, setWorkoutDate] = useState(todayISO);
   const [exercises, setExercises] = useState([]);
-  const [currentExercise, setCurrentExercise] = useState({
-    muscleGroup: "",
-    exercise: "",
-    sets: "",
-    reps: "",
-    weight: "",
-    weightType: "kg",
-    isAssistance: false,
-  });
+  const [currentExercise, setCurrentExercise] = useState(EMPTY_EXERCISE);
   const [editIndex, setEditIndex] = useState(null);
   const [setLogging, setSetLogging] = useState(false);
+  const [startedAt, setStartedAt] = useState(null);
 
-  // Rest timer state
-  const [restSeconds, setRestSeconds] = useState(0);
-  const [restDuration, setRestDuration] = useState(90);
-  const timerRef = useRef(null);
+  const restTimer = useRestTimer(90);
+  const elapsedSeconds = useElapsed(startedAt);
 
-  const muscleGroups = ["Chest", "Legs", "Back", "Shoulders", "Arms", "Abs"];
-  const exercisesList = {
-    Chest: [
-      "Pushups",
-      "Deficit Pushups",
-      "Dips",
-      "Dumbbell Bench Press",
-      "Dumbbell Incline Press",
-      "Barbell Bench Press",
-      "Barbell Incline Press",
-      "Smith Machine Bench Press",
-      "Chest Press Machine",
-      "Chest Press",
-      "Incline Press Machine",
-      "Flat Press Machine",
-      "Cable Crossovers",
-      "Incline Cable Crossovers",
-      "Decline Cable Crossovers",
-      "Pec Deck"
-    ],
-    Legs: [
-      "Barbell Squats",
-      "Smith Machine Squats",
-      "Hack Squat",
-      "Leg Press",
-      "Leg Extensions",
-      "Deadlifts",
-      "Seated Hamstring Curls",
-      "Lying Hamstring Curl",
-      "Smith Machine Goodmornings",
-      "Romanian Deadlifts",
-      "Bulgarian Split Squats",
-      "Calf Raises",
-      "Seated Calf Raises",
-      "Tib Raises",
-      "Lying Glute Machine",
-      "Standing Glute Machine",
-      "Hip Thrusts",
-      "Abductor Machine",
-      "Adductor Machine",
-      "Dumbbell Lunges",
-      "Sprinter Lunges Dumbbell",
-      "Sprinter Lunges Smith Machine",
-      "Perfect Squat Machine",
-      "Perfect Squat Machine Calf Raises"
-    ],
-    Back: [
-      "Pull Ups",
-      "Assisted Pull Ups",
-      "Chin Ups",
-      "Assisted Chin-Ups",
-      "Lat Pulldown",
-      "Lat Pulldown C-Curve",
-      "Straight Arm Cable Pulldown",
-      "Dumbbell Rows",
-      "Barbell Rows",
-      "Seated Rows",
-      "Cable Rows",
-      "Single Arm Cable Rows",
-      "T Bar Row",
-      "High Row Machine",
-      "Low Row Machine",
-      "Back Extensions Bench",
-      "Back Extensions Machine",
-      "Seated Erector Rows",
-      "Dumbbell Shrugs",
-      "Barbell Shrugs",
-      "Trap Bar Shrugs",
-      "Incline Trap Raise"
-    ],
-    Arms: [
-      "Tricep Press Machine",
-      "Cable Overhead Tricep Extensions",
-      "Tricep Pulldown Rope",
-      "Tricep Pulldown Rope Single-Arm",
-      "Dumbbell Kickbacks",
-      "Cable Kickbacks",
-      "Skullcrushers Neutral Grip Barbell",
-      "Skullcrushers Pronated Grip Barbell",
-      "Skullcrushers Plate",
-      "Skullcrushers Dumbbells",
-      "Bicep Curls Dumbbell",
-      "Bicep Curls Barbell",
-      "Bicep Curls Cable",
-      "Bicep Curls Cable Non-Machine",
-      "Bayesian Bicep Curls",
-      "Reverse Curls Cable Non-Machine",
-      "Reverse Curls Cable",
-      "Reverse Curls Dumbbell",
-      "Reverse Curls Barbell",
-      "Hammer Curls Dumbbell",
-      "Preacher Curls",
-      "Preacher Curls Dumbbell",
-      "Preacher Curls Cable",
-      "Reverse Preacher Curls",
-      "Forearm Curls Pronated",
-      "Forearm Curls Pronated Single-Hand",
-      "Forearm Curls Supinated",
-      "Forearm Curls Supinated Single-Hand"
-    ],
-    Shoulders: [
-      "Shoulder Press Machine",
-      "Shoulder Press Dumbbell",
-      "Shoulder Press Barbell",
-      "Lateral Raises",
-      "Cable Lateral Raises",
-      "Lateral Raises Machine",
-      "Face Pulls",
-      "Rotator Cuff Band",
-      "External Rotation Horizontal",
-      "External Rotation Vertical",
-      "Rotator Cuff Cable",
-      "Reverse Pec Deck Flys",
-      "Reverse Pec Deck Flys Sideways",
-      "Reverse Cable Crossovers",
-      "Rear Delt Bench Flys Dumbbell",
-      "One Arm Cable Crossovers",
-    ],
-    Abs: [
-      "Crunch Machine",
-      "V-Crunch Machine",
-      "Oblique Machine",
-      "Hanging Leg Raises",
-      "Elbow-Supported Hanging Leg Raises"
-    ]
-  };
-  const weightTypes = ["kg", "machine"];
+  useEffect(() => {
+    const draft = loadDraft(DRAFT_KEY);
+    if (!draft) return;
+    if (draft.workoutName) setWorkoutName(draft.workoutName);
+    if (draft.workoutDate) setWorkoutDate(draft.workoutDate);
+    if (Array.isArray(draft.exercises)) setExercises(draft.exercises);
+    if (draft.currentExercise) setCurrentExercise(draft.currentExercise);
+    if (draft.startedAt) setStartedAt(draft.startedAt);
+  }, []);
 
-  // Recent unique workouts for "Repeat Workout" picker
+  useEffect(() => {
+    if (!editingWorkout) return;
+    setWorkoutName(editingWorkout.workoutName || "");
+    setWorkoutDate(editingWorkout.workoutDate || "");
+    setExercises(editingWorkout.exercises || []);
+    setStartedAt(
+      editingWorkout.startedAt ? new Date(editingWorkout.startedAt).getTime() : null
+    );
+  }, [editingWorkout]);
+
+  useFormDraft(DRAFT_KEY, {
+    workoutName,
+    workoutDate,
+    exercises,
+    currentExercise,
+    startedAt,
+  });
+
   const recentWorkouts = useMemo(() => {
     if (!workouts || workouts.length === 0) return [];
     return [...workouts]
       .sort((a, b) => new Date(b.workoutDate) - new Date(a.workoutDate))
-      .slice(0, 15);
+      .slice(0, 10);
   }, [workouts]);
 
-  const loadWorkoutTemplate = (workout) => {
-    setWorkoutName(workout.workoutName || "");
-    setExercises(
-      workout.exercises.map((ex) => ({ ...ex }))
-    );
-    toast.success("Workout loaded — update weights and save.");
-  };
-
-  // Rest timer
-  const startTimer = useCallback((duration) => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    setRestDuration(duration);
-    setRestSeconds(duration);
-    timerRef.current = setInterval(() => {
-      setRestSeconds((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current);
-          timerRef.current = null;
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }, []);
-
-  const stopTimer = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    setRestSeconds(0);
-  }, []);
-
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, []);
-
-  // Find the most recent entry for the currently selected exercise
   const lastExerciseInfo = useMemo(() => {
     if (!currentExercise.exercise || !workouts || workouts.length === 0) return null;
-
     const sorted = [...workouts].sort(
       (a, b) => new Date(b.workoutDate) - new Date(a.workoutDate)
     );
-
     for (const workout of sorted) {
-      const match = workout.exercises.find(
-        (ex) => ex.exercise === currentExercise.exercise
-      );
-      if (match) {
-        const date = new Date(workout.workoutDate).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        });
-        const weight = match.isAssistance
-          ? `${Math.abs(match.weight)} ${match.weightType} (assisted)`
-          : `${Math.abs(match.weight)} ${match.weightType}`;
-        return `Last: ${match.sets}x${match.reps} @ ${weight} on ${date}`;
-      }
+      const match = workout.exercises.find((ex) => ex.exercise === currentExercise.exercise);
+      if (!match) continue;
+      const date = formatShortDate(workout.workoutDate);
+      const w = Math.abs(match.weight);
+      const tag = match.isAssistance
+        ? `${w} ${match.weightType} (assisted)`
+        : `${w} ${match.weightType}`;
+      return `Last: ${match.sets}×${match.reps} @ ${tag} on ${date}`;
     }
     return null;
   }, [currentExercise.exercise, workouts]);
 
-  useEffect(() => {
-    // Load current workout from local storage on mount
-    const storedWorkout = localStorage.getItem("currentWorkout");
-    if (storedWorkout) {
-      const parsedWorkout = JSON.parse(storedWorkout);
-      setWorkoutName(parsedWorkout.workoutName || "");
-      setWorkoutDate(parsedWorkout.workoutDate || "");
-      setExercises(parsedWorkout.exercises || []);
-      setCurrentExercise(parsedWorkout.currentExercise || {
-        muscleGroup: "",
-        exercise: "",
-        sets: "",
-        reps: "",
-        weight: "",
-        weightType: "kg",
-        isAssistance: false,
-      });
-    }
-  }, []);
+  const loadWorkoutTemplate = (workout) => {
+    setWorkoutName(workout.workoutName || "");
+    setExercises(workout.exercises.map((ex) => ({ ...ex })));
+    toast.success("Workout loaded — update weights and save.");
+  };
 
-  useEffect(() => {
-    if (editingWorkout) {
-      setWorkoutName(editingWorkout.workoutName || "");
-      setWorkoutDate(editingWorkout.workoutDate || "");
-      setExercises(editingWorkout.exercises || []);
-    }
-  }, [editingWorkout]);
-
-  // Save current workout data to local storage whenever it changes
-  useEffect(() => {
-    const currentWorkoutData = {
-      workoutName,
-      workoutDate,
-      exercises,
-      currentExercise,
-    };
-    localStorage.setItem("currentWorkout", JSON.stringify(currentWorkoutData));
-  }, [workoutName, workoutDate, exercises, currentExercise]);
+  const updateField = (field, value) => {
+    setCurrentExercise((prev) => ({ ...prev, [field]: value }));
+  };
 
   const resetForm = () => {
     setWorkoutName("");
-    setWorkoutDate("");
+    setWorkoutDate(todayISO());
     setExercises([]);
-    setCurrentExercise({
-      muscleGroup: "",
-      exercise: "",
-      sets: "",
-      reps: "",
-      weight: "",
-      weightType: "kg",
-      isAssistance: false,
-    });
+    setCurrentExercise(EMPTY_EXERCISE);
     setEditIndex(null);
-    localStorage.removeItem("currentWorkout"); // Clear the local storage when resetting the form
-  };
-
-  const handleInputChange = (field, value) => {
-    setCurrentExercise({
-      ...currentExercise,
-      [field]: value,
-    });
+    setStartedAt(null);
+    clearDraft(DRAFT_KEY);
   };
 
   const addOrUpdateExercise = () => {
     const { muscleGroup, exercise, sets, reps, weight } = currentExercise;
-
     if (!muscleGroup || !exercise || !sets || !reps || !weight) {
       toast.error("Please fill out all fields for the exercise.");
       return;
@@ -303,39 +137,27 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout, workouts = []
     const newExercise = { ...currentExercise };
 
     if (editIndex !== null) {
-      const updatedExercises = [...exercises];
-      updatedExercises[editIndex] = newExercise;
-      setExercises(updatedExercises);
+      setExercises((prev) => {
+        const next = [...prev];
+        next[editIndex] = newExercise;
+        return next;
+      });
       setEditIndex(null);
-      toast.success("Exercise updated successfully!");
+      toast.success("Exercise updated.");
     } else {
-      setExercises([...exercises, newExercise]);
-      toast.success("Exercise added successfully!");
-      startTimer(restDuration);
+      setExercises((prev) => [...prev, newExercise]);
+      toast.success("Exercise added.");
+      restTimer.start(restTimer.duration);
+      // Stamp the workout start the moment the first exercise is logged.
+      // Editing an existing workout keeps its original start time.
+      if (!startedAt) setStartedAt(Date.now());
     }
 
-    if (setLogging) {
-      // Keep muscle group, exercise, weightType, isAssistance — clear sets/reps/weight
-      setCurrentExercise((prev) => ({
-        muscleGroup: prev.muscleGroup,
-        exercise: prev.exercise,
-        sets: "1",
-        reps: "",
-        weight: "",
-        weightType: prev.weightType,
-        isAssistance: prev.isAssistance,
-      }));
-    } else {
-      setCurrentExercise((prev) => ({
-        muscleGroup: prev.muscleGroup,
-        exercise: "",
-        sets: "",
-        reps: "",
-        weight: "",
-        weightType: "kg",
-        isAssistance: false,
-      }));
-    }
+    setCurrentExercise((prev) =>
+      setLogging
+        ? { ...prev, sets: "1", reps: "", weight: "" }
+        : { ...EMPTY_EXERCISE, muscleGroup: prev.muscleGroup }
+    );
   };
 
   const editExercise = (index) => {
@@ -344,269 +166,350 @@ const UploadWorkout = ({ onWorkoutSave = () => {}, editingWorkout, workouts = []
   };
 
   const deleteExercise = (index) => {
-    const updatedExercises = exercises.filter((_, i) => i !== index);
-    setExercises(updatedExercises);
+    setExercises((prev) => prev.filter((_, i) => i !== index));
     toast.success("Exercise removed.");
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
     const userID = localStorage.getItem("email");
     if (!userID) {
       toast.error("You are not authenticated. Please log in again.");
       return;
     }
-
     if (!workoutDate) {
       toast.error("Please provide a workout date.");
       return;
     }
 
-    const workoutData = {
+    const endedAtMs = Date.now();
+    const startedAtMs = startedAt || endedAtMs;
+    const durationSeconds = computeDurationSeconds(startedAtMs, endedAtMs);
+
+    const payload = {
       userID,
       workoutID: editingWorkout?.workoutID || null,
       workoutName: workoutName || "Untitled Workout",
       workoutDate,
-      exercises: exercises.map((exercise) => ({
-        muscleGroup: exercise.muscleGroup,
-        exercise: exercise.exercise,
-        sets: Number(exercise.sets),
-        reps: Number(exercise.reps),
-        weight: exercise.isAssistance
-          ? -Math.abs(Number(exercise.weight))
-          : Math.abs(Number(exercise.weight)),
-        weightType: exercise.weightType,
-        isAssistance: exercise.isAssistance,
+      startedAt: new Date(startedAtMs).toISOString(),
+      endedAt: new Date(endedAtMs).toISOString(),
+      durationSeconds,
+      exercises: exercises.map((ex) => ({
+        muscleGroup: ex.muscleGroup,
+        exercise: ex.exercise,
+        sets: Number(ex.sets),
+        reps: Number(ex.reps),
+        weight: toSignedWeight({ weight: ex.weight, isAssistance: ex.isAssistance }),
+        weightType: ex.weightType,
+        isAssistance: ex.isAssistance,
       })),
     };
 
-    const endpoint = editingWorkout ? "/updateWorkout" : "/saveWorkout";
-
-    try {
-      await apiClient.post(endpoint, workoutData);
-      toast.success(editingWorkout ? "Workout updated successfully!" : "Workout saved successfully!");
-      onWorkoutSave();
-      resetForm();
-    } catch (error) {
-      console.error("Error saving workout:", error.response || error);
-      toast.error("Failed to save workout. Please try again.");
-    }
+    const mutation = editingWorkout ? updateMutation : saveMutation;
+    mutation.mutate(payload, {
+      onSuccess: () => {
+        onWorkoutSave();
+        resetForm();
+      },
+    });
   };
 
-  return (
-    <div className="upload-workout-container">
-      <h3>{editingWorkout ? "Edit Workout" : "Create a New Workout"}</h3>
+  const exerciseOptions = currentExercise.muscleGroup
+    ? EXERCISES_BY_GROUP[currentExercise.muscleGroup]
+    : [];
 
-      {/* Repeat Workout Picker */}
-      {!editingWorkout && recentWorkouts.length > 0 && (
-        <div className="repeat-workout-section">
-          <label className="form-label" style={{ minWidth: "unset", textAlign: "left" }}>
-            Repeat a workout:
-          </label>
-          <select
-            className="select-input"
-            defaultValue=""
-            onChange={(e) => {
-              const idx = parseInt(e.target.value, 10);
-              if (!isNaN(idx)) loadWorkoutTemplate(recentWorkouts[idx]);
-              e.target.value = "";
-            }}
-          >
-            <option value="" disabled>Select a recent workout...</option>
-            {recentWorkouts.map((w, i) => (
-              <option key={i} value={i}>
-                {w.workoutName || "Untitled"} — {new Date(w.workoutDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })} ({w.exercises.length} exercises)
-              </option>
-            ))}
-          </select>
+  return (
+    <div className="upload">
+      {restTimer.isRunning && (
+        <div className="rest-banner" role="status" aria-live="polite">
+          <Timer size={18} />
+          <span className="rest-banner__time">Rest {formatRest(restTimer.seconds)}</span>
+          <button type="button" className="rest-banner__skip" onClick={restTimer.stop}>
+            Skip
+          </button>
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
-        {/* First row: Workout Name & Date */}
-        <div className="form-row">
-          <input
-            type="text"
-            placeholder="Workout Name (Optional)"
-            value={workoutName}
-            onChange={(e) => setWorkoutName(e.target.value)}
-            className="exercise-input"
-          />
-          <input
-            type="date"
-            value={workoutDate}
-            onChange={(e) => setWorkoutDate(e.target.value)}
-            className="exercise-input"
-            required
-          />
-        </div>
-
-        {/* Exercise Info Section */}
-        <h4>{editIndex !== null ? "Edit Exercise" : "Add Exercise"}</h4>
-        <div className="exercise-input-row">
-          <label className="form-label">Muscle Group:</label>
-          <select
-            value={currentExercise.muscleGroup}
-            onChange={(e) => handleInputChange("muscleGroup", e.target.value)}
-            className="select-input"
-          >
-            <option value="">Select Muscle Group</option>
-            {muscleGroups.map((group) => (
-              <option key={group} value={group}>
-                {group}
-              </option>
-            ))}
-          </select>
-
-          <label className="form-label">Exercise:</label>
-          <select
-            value={currentExercise.exercise}
-            onChange={(e) => handleInputChange("exercise", e.target.value)}
-            disabled={!currentExercise.muscleGroup}
-            className="select-input"
-          >
-            <option value="">Select Exercise</option>
-            {currentExercise.muscleGroup &&
-              exercisesList[currentExercise.muscleGroup].map((ex) => (
-                <option key={ex} value={ex}>
-                  {ex}
-                </option>
-              ))}
-          </select>
-        </div>
-
-        {lastExerciseInfo && (
-          <p className="last-exercise-hint">{lastExerciseInfo}</p>
-        )}
-
-        <div className="exercise-input-row">
-          <label className="form-label">Sets:</label>
-          <input
-            type="number"
-            placeholder="Sets"
-            value={currentExercise.sets}
-            onChange={(e) => handleInputChange("sets", e.target.value)}
-            className="short-input"
-          />
-
-          <label className="form-label">Reps:</label>
-          <input
-            type="number"
-            placeholder="Reps"
-            value={currentExercise.reps}
-            onChange={(e) => handleInputChange("reps", e.target.value)}
-            className="short-input"
-          />
-
-          <label className="form-label">Weight:</label>
-          <input
-            type="number"
-            placeholder="Weight"
-            value={currentExercise.weight}
-            onChange={(e) => handleInputChange("weight", e.target.value)}
-            className="short-input"
-          />
-        </div>
-
-        <div className="exercise-input-row">
-          <label className="form-label">Weight Type:</label>
-          <select
-            value={currentExercise.weightType}
-            onChange={(e) => handleInputChange("weightType", e.target.value)}
-            className="select-input"
-          >
-            {weightTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-
-          <label className="form-label">Assistance:</label>
-          <select
-            value={currentExercise.isAssistance}
-            onChange={(e) =>
-              handleInputChange("isAssistance", e.target.value === "true")
-            }
-            className="select-input"
-          >
-            <option value="false">Regular</option>
-            <option value="true">Assisted</option>
-          </select>
-        </div>
-
-        {/* Set logging toggle */}
-        <div className="set-logging-row">
-          <label className="set-logging-label">
-            <input
-              type="checkbox"
-              checked={setLogging}
-              onChange={(e) => setSetLogging(e.target.checked)}
-            />
-            Log sets individually
-          </label>
-          {setLogging && (
-            <span className="set-logging-hint">Each add = 1 set. Exercise stays selected.</span>
-          )}
-        </div>
-
-        <div className="button-group">
-          <button type="button" onClick={addOrUpdateExercise}>
-            {editIndex !== null ? "Update Exercise" : setLogging ? "Log Set" : "Add Exercise"}
-          </button>
-        </div>
-
-        {/* Rest Timer */}
-        {restSeconds > 0 && (
-          <div className="rest-timer">
-            <span className="rest-timer-display">
-              Rest: {Math.floor(restSeconds / 60)}:{String(restSeconds % 60).padStart(2, "0")}
+      <div className="upload__heading">
+        <h2 className="upload__title">
+          {editingWorkout ? "Edit Workout" : "Log a Workout"}
+        </h2>
+        {startedAt && (
+          <div className="elapsed-badge" aria-live="polite">
+            <Clock size={14} />
+            <span className="elapsed-badge__started">
+              Started {formatTimeOfDay(startedAt)}
             </span>
-            <button type="button" className="rest-timer-stop" onClick={stopTimer}>Skip</button>
+            <span className="elapsed-badge__sep">·</span>
+            <span className="elapsed-badge__duration">
+              {formatDuration(elapsedSeconds)}
+            </span>
           </div>
         )}
-        {restSeconds === 0 && exercises.length > 0 && !timerRef.current && (
-          <div className="rest-timer-presets">
-            <span className="rest-timer-label">Rest:</span>
-            {[60, 90, 120, 180].map((s) => (
+      </div>
+
+      {!editingWorkout && recentWorkouts.length > 0 && (
+        <section className="card upload__recent">
+          <header className="card__header">
+            <h3 className="card__title">Repeat a workout</h3>
+            <p className="card__subtitle">Tap to load and edit weights</p>
+          </header>
+          <div className="recent-row">
+            {recentWorkouts.map((w, i) => (
               <button
-                key={s}
+                key={i}
                 type="button"
-                className={`rest-preset-btn ${restDuration === s ? "active" : ""}`}
-                onClick={() => startTimer(s)}
+                className="recent-card"
+                onClick={() => loadWorkoutTemplate(w)}
               >
-                {s >= 120 ? `${s / 60}m` : `${s}s`}
+                <span className="recent-card__name">
+                  {w.workoutName || "Untitled"}
+                </span>
+                <span className="recent-card__meta">
+                  {formatShortDate(w.workoutDate)} · {w.exercises.length} ex
+                </span>
               </button>
             ))}
           </div>
+        </section>
+      )}
+
+      <form className="upload__form" onSubmit={handleSubmit}>
+        <section className="card">
+          <header className="card__header">
+            <h3 className="card__title">Workout details</h3>
+          </header>
+          <div className="field-row field-row--two">
+            <label className="field">
+              <span className="field__label">Name</span>
+              <input
+                type="text"
+                placeholder="e.g. Push Day"
+                value={workoutName}
+                onChange={(e) => setWorkoutName(e.target.value)}
+                className="field__input"
+              />
+            </label>
+            <label className="field">
+              <span className="field__label">Date</span>
+              <input
+                type="date"
+                value={workoutDate}
+                onChange={(e) => setWorkoutDate(e.target.value)}
+                className="field__input"
+                required
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="card">
+          <header className="card__header">
+            <h3 className="card__title">
+              {editIndex !== null ? "Edit exercise" : "Add exercise"}
+            </h3>
+          </header>
+
+          <div className="field">
+            <span className="field__label">Muscle group</span>
+            <ChipRow
+              options={MUSCLE_GROUPS}
+              value={currentExercise.muscleGroup}
+              onChange={(v) => updateField("muscleGroup", v)}
+              ariaLabel="Muscle group"
+            />
+          </div>
+
+          <label className="field">
+            <span className="field__label">Exercise</span>
+            <select
+              value={currentExercise.exercise}
+              onChange={(e) => updateField("exercise", e.target.value)}
+              disabled={!currentExercise.muscleGroup}
+              className="field__select"
+            >
+              <option value="">
+                {currentExercise.muscleGroup
+                  ? "Select exercise"
+                  : "Choose a muscle group first"}
+              </option>
+              {exerciseOptions.map((ex) => (
+                <option key={ex} value={ex}>{ex}</option>
+              ))}
+            </select>
+          </label>
+
+          {lastExerciseInfo && (
+            <p className="field-hint">{lastExerciseInfo}</p>
+          )}
+
+          <div className="field-row field-row--three">
+            <label className="field">
+              <span className="field__label">Sets</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                placeholder="0"
+                value={currentExercise.sets}
+                onChange={(e) => updateField("sets", e.target.value)}
+                className="field__input field__input--num"
+              />
+            </label>
+            <label className="field">
+              <span className="field__label">Reps</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                placeholder="0"
+                value={currentExercise.reps}
+                onChange={(e) => updateField("reps", e.target.value)}
+                className="field__input field__input--num"
+              />
+            </label>
+            <label className="field">
+              <span className="field__label">Weight</span>
+              <input
+                type="number"
+                inputMode="decimal"
+                placeholder="0"
+                value={currentExercise.weight}
+                onChange={(e) => updateField("weight", e.target.value)}
+                className="field__input field__input--num"
+              />
+            </label>
+          </div>
+
+          <div className="field">
+            <span className="field__label">Weight type</span>
+            <SegmentedControl
+              ariaLabel="Weight type"
+              value={currentExercise.weightType}
+              onChange={(v) => updateField("weightType", v)}
+              options={WEIGHT_TYPES.map((t) => ({ value: t, label: t }))}
+            />
+          </div>
+
+          <div className="field">
+            <span className="field__label">Assistance</span>
+            <SegmentedControl
+              ariaLabel="Assistance"
+              value={currentExercise.isAssistance}
+              onChange={(v) => updateField("isAssistance", v)}
+              options={[
+                { value: false, label: "Regular" },
+                { value: true, label: "Assisted" },
+              ]}
+            />
+          </div>
+
+          <label className="toggle">
+            <input
+              type="checkbox"
+              className="toggle__input"
+              checked={setLogging}
+              onChange={(e) => setSetLogging(e.target.checked)}
+            />
+            <span className="toggle__track" aria-hidden="true">
+              <span className="toggle__thumb" />
+            </span>
+            <span className="toggle__label">
+              Log sets individually
+              <span className="toggle__hint">Each add = 1 set; exercise stays selected</span>
+            </span>
+          </label>
+
+          <button
+            type="button"
+            className="btn btn--primary btn--block"
+            onClick={addOrUpdateExercise}
+          >
+            {editIndex !== null
+              ? "Update exercise"
+              : setLogging
+              ? "Log set"
+              : "Add exercise"}
+          </button>
+
+          {!restTimer.isRunning && exercises.length > 0 && (
+            <div className="rest-presets" aria-label="Rest timer presets">
+              <span className="rest-presets__label">Rest</span>
+              {REST_PRESETS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className={`rest-presets__btn ${restTimer.duration === s ? "is-active" : ""}`}
+                  onClick={() => restTimer.start(s)}
+                >
+                  {formatPreset(s)}
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {exercises.length > 0 && (
+          <section className="card">
+            <header className="card__header">
+              <h3 className="card__title">
+                Current exercises <span className="card__count">{exercises.length}</span>
+              </h3>
+            </header>
+            <ul className="ex-list">
+              {exercises.map((ex, index) => {
+                const w = Math.abs(Number(ex.weight) || 0);
+                return (
+                  <li key={index} className="ex-list__item">
+                    <div className="ex-list__main">
+                      <div className="ex-list__name">{ex.exercise}</div>
+                      <div className="ex-list__meta">
+                        {ex.sets}×{ex.reps} @ {w} {ex.weightType}
+                        {ex.isAssistance ? " · assisted" : ""}
+                      </div>
+                    </div>
+                    <div className="ex-list__actions">
+                      <IconButton
+                        icon={Pencil}
+                        label="Edit exercise"
+                        onClick={() => editExercise(index)}
+                      />
+                      <IconButton
+                        icon={Trash2}
+                        label="Delete exercise"
+                        onClick={() => deleteExercise(index)}
+                        variant="danger"
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
         )}
 
-        {/* Current Exercises */}
-        <div className="current-workout-summary">
-          <h4>Current Exercises</h4>
-          {exercises.length > 0 && (
-            <ul>
-              {exercises.map((exercise, index) => (
-                <li key={index}>
-                  {exercise.exercise} - {exercise.sets} sets of {exercise.reps} reps at{" "}
-                  {exercise.weight} {exercise.weightType} (
-                  {exercise.isAssistance ? "Assisted" : "Regular"})
-                  <button type="button" onClick={() => editExercise(index)}>
-                    Edit
-                  </button>
-                  <button type="button" onClick={() => deleteExercise(index)}>
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <button type="submit">
-          {editingWorkout ? "Update Workout" : "Save Workout"}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="btn btn--primary btn--block btn--submit"
+        >
+          {isSubmitting
+            ? "Saving…"
+            : editingWorkout
+            ? "Update workout"
+            : "Save workout"}
         </button>
+
+        {editingWorkout && (
+          <button
+            type="button"
+            onClick={() => {
+              onWorkoutSave();
+              resetForm();
+            }}
+            className="btn btn--ghost btn--block"
+          >
+            <X size={16} /> Cancel edit
+          </button>
+        )}
       </form>
     </div>
   );

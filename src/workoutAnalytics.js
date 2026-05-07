@@ -1,8 +1,17 @@
-import React, { useState, useMemo } from "react";
-import axios from "axios";
-import DOMPurify from "dompurify";
-import { transformWorkouts } from "./utils";
-import ErrorBoundary from "./ErrorBoundary";
+import React, { useMemo, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import {
+  Activity,
+  Award,
+  CalendarDays,
+  ChevronDown,
+  Clock,
+  Dumbbell,
+  Flame,
+  LineChart,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,369 +20,420 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
+
+import ErrorBoundary from "./ErrorBoundary";
+import MarkdownText from "./components/MarkdownText";
+import StatCard from "./components/StatCard";
+import { aggregateWorkouts, formatDaysAgo, topLineStats } from "./lib/analytics";
+import { formatDuration } from "./lib/duration";
+import { formatCompactVolume, formatWeight } from "./lib/weight";
+import { requestAIInsights } from "./api/ai";
+import { MUSCLE_GROUPS } from "./data/exercises";
 import "./WorkoutAnalytics.css";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-// Convert AI's markdown-like text into basic HTML
-const formatAIText = (text) => {
-  let formatted = text;
-  formatted = formatted.replace(/^### (.*)$/gm, "<h3>$1</h3>");
-  formatted = formatted.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-  formatted = formatted.replace(/^- (.*)$/gm, "<li>$1</li>");
-  formatted = formatted.replace(/(<li>.*?<\/li>)+/gs, (match) => `<ul>${match}</ul>`);
-  return formatted;
-};
+const MUSCLE_GROUP_ORDER = ["Chest", "Back", "Shoulders", "Legs", "Arms", "Abs"];
 
-// Calculate percentage change, handling negative weights (assistance)
-const calculatePercentageChange = (current, previous) => {
-  if (previous === 0) {
-    return current === 0 ? 0 : (current > 0 ? 100 : -100);
-  }
-  if (current < 0 && previous < 0) {
-    return ((current - previous) / Math.abs(previous)) * 100;
-  }
-  if (previous < 0 && current > 0) {
-    return ((Math.abs(previous) + current) / Math.abs(previous)) * 100;
-  }
-  if (previous > 0 && current < 0) {
-    return -((previous + Math.abs(current)) / previous) * 100;
-  }
-  return ((current - previous) / previous) * 100;
-};
+const formatShortDate = (date) =>
+  date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
-// Pure helper — no component state needed
-const getWeightLabel = (weight) =>
-  weight < 0 ? `${Math.abs(weight)} kg (assisted)` : `${weight} kg`;
-
-const ProgressionChart = React.memo(({ progression }) => {
-  const sortedProg = useMemo(
-    () => [...progression].sort((a, b) => a.date - b.date),
-    [progression]
-  );
-
+const MiniChart = React.memo(({ progression, field, label, color, height = 120 }) => {
   const data = useMemo(() => ({
-    labels: sortedProg.map((entry) =>
-      entry.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-    ),
+    labels: progression.map((entry) => formatShortDate(entry.date)),
     datasets: [
       {
-        label: "Total Volume (kg)",
-        data: sortedProg.map((entry) => entry.totalVolume.toFixed(2)),
-        yAxisID: "yVolume",
-        borderColor: "#007bff",
-        backgroundColor: "rgba(0, 123, 255, 0.3)",
-        tension: 0.2
+        label,
+        data: progression.map((entry) => Number(entry[field].toFixed(2))),
+        borderColor: color,
+        backgroundColor: color + "22",
+        tension: 0.25,
+        pointRadius: 3,
+        borderWidth: 2,
+        fill: true,
       },
-      {
-        label: "Avg Volume/Set (kg)",
-        data: sortedProg.map((entry) => entry.avgVolumePerSet.toFixed(2)),
-        yAxisID: "yVolume",
-        borderColor: "#28a745",
-        backgroundColor: "rgba(40, 167, 69, 0.3)",
-        tension: 0.2
-      },
-      {
-        label: "Max Weight (kg)",
-        data: sortedProg.map((entry) => Math.abs(entry.maxWeight).toFixed(2)),
-        yAxisID: "yWeight",
-        borderColor: "#ff6347",
-        backgroundColor: "rgba(255, 99, 71, 0.3)",
-        tension: 0.2
-      }
-    ]
-  }), [sortedProg]);
+    ],
+  }), [progression, field, label, color]);
 
   const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     interaction: { mode: "index", intersect: false },
     scales: {
-      yVolume: { type: "linear", display: true, position: "left" },
-      yWeight: {
+      y: {
         type: "linear",
-        display: true,
-        position: "right",
-        grid: { drawOnChartArea: false }
-      }
+        position: "left",
+        ticks: { font: { size: 10 } },
+        grid: {
+          color: (ctx) => (ctx.tick && ctx.tick.value === 0 ? "#94a3b8" : "#e2e8f0"),
+        },
+      },
+      x: {
+        ticks: { font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 },
+        grid: { display: false },
+      },
     },
     plugins: {
-      legend: { position: "top", labels: { boxWidth: 12, font: { size: 11 } } },
-      title: { display: false }
-    }
-  }), []);
+      legend: { display: false },
+      title: {
+        display: !!label,
+        text: label,
+        font: { size: 11, weight: "600" },
+        color: "#475569",
+        padding: { bottom: 4 },
+      },
+      tooltip: { bodyFont: { size: 11 }, titleFont: { size: 11 } },
+    },
+  }), [label]);
 
   return (
-    <div className="chart-container">
+    <div className="mini-chart" style={{ height }}>
       <Line data={data} options={options} />
+    </div>
+  );
+});
+
+const TrendBadge = ({ pct }) => {
+  if (pct === null || !Number.isFinite(pct)) {
+    return <span className="trend trend--neutral">—</span>;
+  }
+  const arrow = pct > 0 ? "▲" : pct < 0 ? "▼" : "•";
+  const cls = pct > 0 ? "trend--up" : pct < 0 ? "trend--down" : "trend--neutral";
+  return (
+    <span className={`trend ${cls}`}>
+      {arrow} {Math.abs(pct).toFixed(1)}%
+    </span>
+  );
+};
+
+const GroupOverview = ({ stats, sessionVolumes }) => (
+  <div className="group-overview">
+    <div className="group-overview__head">
+      <span className="group-overview__eyebrow">Overview</span>
+      {stats.topExercise && (
+        <span className="group-overview__top">
+          <Award size={12} /> {stats.topExercise}
+        </span>
+      )}
+    </div>
+
+    <div className="mini-stats">
+      <div className="mini-stat">
+        <div className="mini-stat__value">{stats.sessions}</div>
+        <div className="mini-stat__label">Sessions</div>
+      </div>
+      <div className="mini-stat">
+        <div className="mini-stat__value">{formatCompactVolume(stats.totalVolume)}</div>
+        <div className="mini-stat__label">Total volume</div>
+      </div>
+      <div className="mini-stat">
+        <div className="mini-stat__value">{formatDaysAgo(stats.lastTrainedDays)}</div>
+        <div className="mini-stat__label">Last trained</div>
+      </div>
+      <div className="mini-stat">
+        <div className="mini-stat__value mini-stat__value--with-trend">
+          {formatCompactVolume(stats.avgVolumePerSession)}
+          {stats.sessionTrend !== null && Number.isFinite(stats.sessionTrend) && (
+            <span
+              className={`mini-stat__delta ${stats.sessionTrend >= 0 ? "is-up" : "is-down"}`}
+            >
+              {stats.sessionTrend >= 0 ? "+" : ""}
+              {stats.sessionTrend.toFixed(0)}%
+            </span>
+          )}
+        </div>
+        <div className="mini-stat__label">Avg / session</div>
+      </div>
+    </div>
+
+    {sessionVolumes.length > 1 && (
+      <div className="group-overview__chart">
+        <div className="group-overview__chart-label">
+          <TrendingUp size={12} />
+          Volume by session
+        </div>
+        <ErrorBoundary>
+          <MiniChart
+            progression={sessionVolumes}
+            field="totalVolume"
+            label=""
+            color="#2563eb"
+            height={110}
+          />
+        </ErrorBoundary>
+      </div>
+    )}
+  </div>
+);
+
+const RecentSessions = ({ sessions }) => {
+  if (sessions.length === 0) return null;
+  return (
+    <div className="recent-sessions">
+      <div className="recent-sessions__title">Recent sessions</div>
+      <ul className="recent-sessions__list">
+        {sessions.map((s, i) => (
+          <li key={i} className="recent-sessions__item">
+            <span className="recent-sessions__date">{formatShortDate(s.date)}</span>
+            <span className="recent-sessions__sets">{s.totalSets} set{s.totalSets === 1 ? "" : "s"}</span>
+            <span className="recent-sessions__weight">{formatWeight(s.maxWeight)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+const PersonalBest = ({ pb }) => {
+  if (!pb) return null;
+  return (
+    <div className="pb-callout">
+      <div className="pb-callout__icon">
+        <Award size={18} />
+      </div>
+      <div className="pb-callout__body">
+        <div className="pb-callout__label">Personal Best</div>
+        <div className="pb-callout__value">
+          {formatWeight(pb.weight)} <span className="pb-callout__date">· {formatShortDate(pb.date)}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ExerciseCard = React.memo(({ name, analytics, isExpanded, onToggle }) => {
+  const { summary, progression, maxWeightTrend, personalBest, daysSinceLast, recentSessions } = analytics;
+  const [showCharts, setShowCharts] = useState(false);
+
+  return (
+    <div className={`ex-card ${isExpanded ? "is-expanded" : ""}`}>
+      <button
+        type="button"
+        className="ex-card__header"
+        onClick={onToggle}
+        aria-expanded={isExpanded}
+      >
+        <span className="ex-card__name">{name}</span>
+        <span className="ex-card__trail">
+          <TrendBadge pct={maxWeightTrend} />
+          <ChevronDown
+            size={16}
+            className={`ex-card__chevron ${isExpanded ? "is-open" : ""}`}
+          />
+        </span>
+      </button>
+
+      {isExpanded && (
+        <div className="ex-card__body">
+          <PersonalBest pb={personalBest} />
+
+          <dl className="metrics">
+            {summary.map((m, idx) => (
+              <div key={idx} className="metric">
+                <dt className="metric__label">{m.label}</dt>
+                <dd className="metric__value">
+                  {m.value}
+                  {m.trend !== null && Number.isFinite(m.trend) && (
+                    <span
+                      className={`metric__delta ${m.trend >= 0 ? "is-up" : "is-down"}`}
+                    >
+                      {m.trend >= 0 ? "+" : ""}
+                      {m.trend.toFixed(1)}%
+                    </span>
+                  )}
+                </dd>
+              </div>
+            ))}
+            <div className="metric">
+              <dt className="metric__label">Days Since</dt>
+              <dd className="metric__value">{formatDaysAgo(daysSinceLast)}</dd>
+            </div>
+          </dl>
+
+          <RecentSessions sessions={recentSessions} />
+
+          <button
+            type="button"
+            className="ex-card__charts-toggle"
+            onClick={() => setShowCharts((v) => !v)}
+          >
+            <LineChart size={14} />
+            {showCharts ? "Hide charts" : "Show charts"}
+          </button>
+
+          {showCharts && (
+            <ErrorBoundary>
+              <MiniChart
+                progression={progression}
+                field="maxWeight"
+                label="Max Weight"
+                color="#2563eb"
+              />
+              <MiniChart
+                progression={progression}
+                field="totalVolume"
+                label="Total Volume"
+                color="#16a34a"
+              />
+            </ErrorBoundary>
+          )}
+        </div>
+      )}
     </div>
   );
 });
 
 const WorkoutAnalytics = ({ workouts }) => {
   const [expandedExercises, setExpandedExercises] = useState({});
-  const [aiInsights, setAiInsights] = useState("");
-  const [loadingAI, setLoadingAI] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState({});
 
-  const analytics = useMemo(() => {
-    if (!workouts || workouts.length === 0) {
-      return { muscleGroupAnalytics: {}, workoutFrequency: "" };
-    }
+  const aiMutation = useMutation({
+    mutationFn: () => requestAIInsights(workouts),
+    onError: (error) => console.error("Error with AI Analysis:", error),
+  });
 
-    const overallAnalytics = {};
-    const workoutDatesSet = new Set();
+  const { muscleGroupAnalytics } = useMemo(
+    () => aggregateWorkouts(workouts),
+    [workouts]
+  );
 
-    const pullChinExercises = [
-      "Pull Ups",
-      "Assisted Pull Ups",
-      "Chin Ups",
-      "Assisted Chin-Ups"
-    ];
+  const stats = useMemo(() => topLineStats(workouts), [workouts]);
 
-    const sortedWorkouts = [...workouts].sort(
-      (a, b) => new Date(a.workoutDate) - new Date(b.workoutDate)
-    );
-
-    sortedWorkouts.forEach((workout) => {
-      workoutDatesSet.add(workout.workoutDate);
-
-      const workoutAgg = {};
-      workout.exercises.forEach((exercise) => {
-        let key = `${exercise.muscleGroup}-${exercise.exercise}`;
-        if (
-          exercise.muscleGroup === "Back" &&
-          pullChinExercises.includes(exercise.exercise)
-        ) {
-          key = "Back-Pull Up + Chin-Up";
-        }
-        if (!workoutAgg[key]) {
-          workoutAgg[key] = { totalVolume: 0, totalSets: 0, maxWeight: Number.NEGATIVE_INFINITY };
-        }
-        workoutAgg[key].totalVolume += exercise.sets * exercise.reps * Math.abs(exercise.weight);
-        workoutAgg[key].totalSets += exercise.sets;
-        workoutAgg[key].maxWeight = Math.max(workoutAgg[key].maxWeight, exercise.weight);
-      });
-
-      Object.keys(workoutAgg).forEach((key) => {
-        let muscleGroup, exerciseName;
-        if (key === "Back-Pull Up + Chin-Up") {
-          muscleGroup = "Back";
-          exerciseName = "Pull Up / Chin-Up";
-        } else {
-          [muscleGroup, exerciseName] = key.split("-");
-        }
-        if (!overallAnalytics[muscleGroup]) overallAnalytics[muscleGroup] = {};
-        if (!overallAnalytics[muscleGroup][exerciseName]) {
-          overallAnalytics[muscleGroup][exerciseName] = {
-            totalVolume: 0,
-            totalSets: 0,
-            workoutCount: 0,
-            maxWeight: Number.NEGATIVE_INFINITY,
-            progression: []
-          };
-        }
-
-        const agg = workoutAgg[key];
-        const record = overallAnalytics[muscleGroup][exerciseName];
-        record.totalVolume += agg.totalVolume;
-        record.totalSets += agg.totalSets;
-        record.workoutCount += 1;
-        record.maxWeight = Math.max(record.maxWeight, agg.maxWeight);
-        record.progression.push({
-          date: new Date(workout.workoutDate),
-          totalVolume: agg.totalVolume,
-          avgVolumePerSet: agg.totalSets > 0 ? agg.totalVolume / agg.totalSets : 0,
-          maxWeight: agg.maxWeight
-        });
-      });
-    });
-
-    const workoutFrequency = `You completed ${sortedWorkouts.length} workout(s) on ${workoutDatesSet.size} unique day(s).`;
-
-    const muscleGroupAnalytics = {};
-    Object.keys(overallAnalytics).forEach((muscleGroup) => {
-      muscleGroupAnalytics[muscleGroup] = { exercises: {} };
-      Object.keys(overallAnalytics[muscleGroup]).forEach((exerciseName) => {
-        const rec = overallAnalytics[muscleGroup][exerciseName];
-        const sortedProg = rec.progression.sort((a, b) => a.date - b.date);
-
-        let summaryMetrics = [];
-
-        if (sortedProg.length > 0) {
-          const latest = sortedProg[sortedProg.length - 1];
-          const first = sortedProg[0];
-          const previous = sortedProg.length > 1 ? sortedProg[sortedProg.length - 2] : null;
-
-          const totalVolumeFromPrev = previous
-            ? calculatePercentageChange(latest.totalVolume, previous.totalVolume) : null;
-          const avgVolumeFromPrev = previous
-            ? calculatePercentageChange(latest.avgVolumePerSet, previous.avgVolumePerSet) : null;
-          const maxWeightFromPrev = previous
-            ? calculatePercentageChange(latest.maxWeight, previous.maxWeight) : null;
-
-          summaryMetrics = [
-            {
-              label: "Total Volume",
-              value: `${latest.totalVolume.toFixed(2)} kg`,
-              comparisons: [
-                ...(totalVolumeFromPrev !== null ? [{ label: "vs Previous", pct: totalVolumeFromPrev }] : []),
-                { label: "vs First", pct: calculatePercentageChange(latest.totalVolume, first.totalVolume) }
-              ]
-            },
-            {
-              label: "Avg Volume/Set",
-              value: `${latest.avgVolumePerSet.toFixed(2)} kg`,
-              comparisons: [
-                ...(avgVolumeFromPrev !== null ? [{ label: "vs Previous", pct: avgVolumeFromPrev }] : []),
-                { label: "vs First", pct: calculatePercentageChange(latest.avgVolumePerSet, first.avgVolumePerSet) }
-              ]
-            },
-            {
-              label: "Max Weight",
-              value: getWeightLabel(latest.maxWeight),
-              comparisons: [
-                ...(maxWeightFromPrev !== null ? [{ label: "vs Previous", pct: maxWeightFromPrev }] : []),
-                { label: "vs First", pct: calculatePercentageChange(latest.maxWeight, first.maxWeight) }
-              ]
-            },
-            { label: "Workout Count", value: String(rec.workoutCount), comparisons: [] }
-          ];
-        } else {
-          summaryMetrics = [{ label: "No data available", value: "", comparisons: [] }];
-        }
-
-        muscleGroupAnalytics[muscleGroup].exercises[exerciseName] = {
-          metrics: summaryMetrics,
-          progression: rec.progression
-        };
-      });
-    });
-
-    return { muscleGroupAnalytics, workoutFrequency };
-  }, [workouts]);
-
-  const toggleExerciseDetails = (muscleGroup, exerciseName) => {
-    const key = `${muscleGroup}-${exerciseName}`;
+  const toggleExercise = (mg, ex) => {
+    const key = `${mg}::${ex}`;
     setExpandedExercises((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleAIAnalysis = async () => {
-    if (!workouts || workouts.length === 0) return;
-    setLoadingAI(true);
-    setAiInsights("Analyzing your workouts with AI...");
-    try {
-      const response = await axios.post(
-        process.env.REACT_APP_CHATBOT_API_URL,
-        { userInput: "Analyze my workouts", workoutHistory: transformWorkouts(workouts) },
-        { headers: { "Content-Type": "application/json" } }
-      );
-      setAiInsights(response.data?.response || "No insights available.");
-    } catch (error) {
-      console.error("Error with AI Analysis:", error);
-      setAiInsights("An error occurred while analyzing. Please try again later.");
-    } finally {
-      setLoadingAI(false);
-    }
+  const toggleGroup = (mg) => {
+    setExpandedGroups((prev) => ({ ...prev, [mg]: !prev[mg] }));
   };
 
   if (!workouts || workouts.length === 0) {
     return (
-      <div className="analytics-title-container">
-        <h2 className="analytics-title">Workout Analytics</h2>
-        <p style={{ color: "#6c757d", marginTop: "20px" }}>
-          Log your first workout to see analytics here.
-        </p>
+      <div className="analytics">
+        <h2 className="analytics__title">Insights</h2>
+        <div className="empty">
+          <p className="empty__text">Log your first workout to see analytics here.</p>
+        </div>
       </div>
     );
   }
 
+  const dataKeys = Object.keys(muscleGroupAnalytics);
+  const orderedGroups = [
+    ...MUSCLE_GROUP_ORDER,
+    ...dataKeys.filter((k) => !MUSCLE_GROUP_ORDER.includes(k) && MUSCLE_GROUPS.indexOf(k) === -1),
+  ];
+
   return (
-    <div>
-      <div className="analytics-title-container">
-        <h2 className="analytics-title">Workout Analytics</h2>
-      </div>
+    <div className="analytics">
+      <h2 className="analytics__title">Insights</h2>
 
-      <div className="analytics-container">
-        <p className="workout-frequency">{analytics.workoutFrequency}</p>
+      <section className="stats-strip">
+        <StatCard value={stats.total} label="Workouts" icon={Dumbbell} />
+        <StatCard value={stats.daysTrained} label="Days trained" icon={CalendarDays} />
+        <StatCard value={stats.last7Days} label="Last 7 days" icon={Flame} />
+        <StatCard
+          value={stats.avgSessionSeconds ? formatDuration(stats.avgSessionSeconds) : "—"}
+          label="Avg session"
+          icon={Clock}
+        />
+      </section>
 
-        {/* AI Analysis */}
-        <div className="ai-analysis-section">
-          <button className="ai-analyze-btn" onClick={handleAIAnalysis} disabled={loadingAI}>
-            Analyze with AI
-          </button>
-          {aiInsights && (
-            <div className="ai-insights">
-              {loadingAI ? (
-                <span>{aiInsights}</span>
-              ) : (
-                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatAIText(aiInsights)) }} />
+      <section className="ai-card">
+        <header className="ai-card__header">
+          <Sparkles size={18} className="ai-card__icon" />
+          <div>
+            <h3 className="ai-card__title">AI Analysis</h3>
+            <p className="ai-card__subtitle">Get personalized insights on your training</p>
+          </div>
+        </header>
+        <button
+          type="button"
+          className="ai-card__btn"
+          onClick={() => aiMutation.mutate()}
+          disabled={aiMutation.isPending}
+        >
+          {aiMutation.isPending ? "Analyzing…" : "Analyze with AI"}
+        </button>
+        {aiMutation.isError && (
+          <div className="ai-card__output ai-card__output--error">
+            Couldn't get insights right now. Try again in a moment.
+          </div>
+        )}
+        {aiMutation.isSuccess && (
+          <div className="ai-card__output">
+            <MarkdownText text={aiMutation.data} />
+          </div>
+        )}
+      </section>
+
+      <section className="groups">
+        <h3 className="groups__title">By muscle group</h3>
+        {orderedGroups.map((mg) => {
+          const groupData = muscleGroupAnalytics[mg];
+          const exercises = groupData ? Object.keys(groupData.exercises).sort() : [];
+          const isOpen = !!expandedGroups[mg];
+          const isEmpty = exercises.length === 0;
+
+          return (
+            <div key={mg} className={`group ${isOpen ? "is-open" : ""} ${isEmpty ? "is-empty" : ""}`}>
+              <button
+                type="button"
+                className="group__header"
+                onClick={() => !isEmpty && toggleGroup(mg)}
+                aria-expanded={isOpen}
+                disabled={isEmpty}
+              >
+                <span className="group__name">
+                  <Activity size={16} className="group__icon" />
+                  {mg}
+                </span>
+                <span className="group__trail">
+                  <span className={`group__count ${isEmpty ? "is-empty" : ""}`}>
+                    {exercises.length}
+                  </span>
+                  {!isEmpty && (
+                    <ChevronDown
+                      size={18}
+                      className={`group__chevron ${isOpen ? "is-open" : ""}`}
+                    />
+                  )}
+                </span>
+              </button>
+
+              {isOpen && !isEmpty && (
+                <div className="group__body">
+                  <GroupOverview
+                    stats={groupData.stats}
+                    sessionVolumes={groupData.sessionVolumes}
+                  />
+
+                  <div className="group__exercises-label">
+                    Exercises
+                  </div>
+
+                  {exercises.map((ex) => {
+                    const expandKey = `${mg}::${ex}`;
+                    return (
+                      <ExerciseCard
+                        key={ex}
+                        name={ex}
+                        analytics={groupData.exercises[ex]}
+                        isExpanded={!!expandedExercises[expandKey]}
+                        onToggle={() => toggleExercise(mg, ex)}
+                      />
+                    );
+                  })}
+                </div>
               )}
             </div>
-          )}
-        </div>
-
-        {/* Muscle Group Sections */}
-        {Object.keys(analytics.muscleGroupAnalytics).map((muscleGroup) => (
-          <div key={muscleGroup} className="muscle-group-section">
-            <h4>{muscleGroup}</h4>
-            <div className="exercise-grid">
-              {Object.keys(analytics.muscleGroupAnalytics[muscleGroup].exercises).map((exerciseName) => {
-                const { metrics, progression } =
-                  analytics.muscleGroupAnalytics[muscleGroup].exercises[exerciseName];
-                const isExpanded = expandedExercises[`${muscleGroup}-${exerciseName}`];
-
-                return (
-                  <div
-                    key={exerciseName}
-                    className="exercise-card"
-                    onClick={() => toggleExerciseDetails(muscleGroup, exerciseName)}
-                  >
-                    <h5>{exerciseName}</h5>
-                    {isExpanded && (
-                      <div className="exercise-details show">
-                        <ul>
-                          {metrics.map((metric, idx) => (
-                            <li key={idx}>
-                              <span className="metric-label">
-                                {metric.label}{metric.value ? ":" : ""}
-                              </span>
-                              {metric.value && (
-                                <span className="metric-value"> {metric.value}</span>
-                              )}
-                              {metric.comparisons.map((comp, cIdx) => (
-                                <div
-                                  key={cIdx}
-                                  className={`metric-comparison ${comp.pct >= 0 ? "positive" : "negative"}`}
-                                >
-                                  {comp.label}: {comp.pct >= 0 ? "+" : ""}{comp.pct.toFixed(1)}%
-                                </div>
-                              ))}
-                            </li>
-                          ))}
-                        </ul>
-                        <ErrorBoundary>
-                          <ProgressionChart progression={progression} />
-                        </ErrorBoundary>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
+          );
+        })}
+      </section>
     </div>
   );
 };

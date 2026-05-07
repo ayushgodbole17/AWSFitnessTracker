@@ -1,131 +1,99 @@
-import React, { useState, useEffect } from "react";
-import apiClient from "./apiClient";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { BarChart3, Dumbbell, ListChecks, RefreshCw } from "lucide-react";
 
 import UploadWorkout from "./uploadWorkout";
 import GetWorkouts from "./getWorkouts";
 import WorkoutAnalytics from "./workoutAnalytics";
+import TopBar from "./components/TopBar";
+import BottomNav from "./components/BottomNav";
+import { useWorkouts } from "./hooks/useWorkouts";
 import "./HomePage.css";
+
+const errorMessage = (error) => {
+  const status = error?.response?.status;
+  if (status === 401 || status === 403) return "Session expired — please sign out and back in.";
+  if (status >= 500) return "Server error — try again in a moment.";
+  if (!error?.response) return "Network error — check your connection.";
+  return "Failed to load workouts.";
+};
+
+const ErrorState = ({ message, onRetry, retrying }) => (
+  <div className="error-state">
+    <p className="error-state__msg">{message}</p>
+    <button
+      type="button"
+      className="error-state__btn"
+      onClick={() => onRetry()}
+      disabled={retrying}
+    >
+      <RefreshCw size={16} className={retrying ? "is-spinning" : ""} />
+      {retrying ? "Retrying…" : "Try again"}
+    </button>
+  </div>
+);
+
+const TABS = [
+  { key: "uploadWorkout", label: "Log", icon: Dumbbell },
+  { key: "viewWorkouts", label: "History", icon: ListChecks },
+  { key: "analytics", label: "Insights", icon: BarChart3 },
+];
 
 const HomePage = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState("uploadWorkout");
   const [editingWorkout, setEditingWorkout] = useState(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [workouts, setWorkouts] = useState([]);
-  const [loadingWorkouts, setLoadingWorkouts] = useState(true);
 
-  // Whenever we need to refresh (or on initial mount), fetch the workouts
+  const { data: workouts = [], isLoading, isError, error, refetch, isFetching } = useWorkouts();
+
   useEffect(() => {
-    fetchAllWorkouts();
-  }, [refreshTrigger]);
+    if (isError) toast.error(errorMessage(error));
+  }, [isError, error]);
 
-  const fetchAllWorkouts = async () => {
-    const email = localStorage.getItem("email");
-    if (!email) {
-      setLoadingWorkouts(false);
-      return;
-    }
-
-    setLoadingWorkouts(true);
-    const delays = [0, 500, 1500];
-    let lastError = null;
-
-    for (let attempt = 0; attempt < delays.length; attempt++) {
-      if (delays[attempt] > 0) {
-        await new Promise((r) => setTimeout(r, delays[attempt]));
-      }
-      try {
-        const response = await apiClient.get("/GetPastWorkouts", { params: { email } });
-        if (response.data && Array.isArray(response.data)) {
-          setWorkouts(response.data);
-        }
-        setLoadingWorkouts(false);
-        return;
-      } catch (error) {
-        lastError = error;
-        const status = error.response?.status;
-        const isTransient = !error.response || (status >= 500 && status < 600);
-        if (!isTransient) break;
-      }
-    }
-
-    console.error("Error fetching workouts:", lastError);
-    toast.error("Failed to load workouts. Please try again.");
-    setLoadingWorkouts(false);
-  };
-
-  // Switch to "uploadWorkout" tab after editing
   const handleEditWorkout = (workout) => {
     setEditingWorkout(workout);
     setActiveTab("uploadWorkout");
   };
 
-  // After saving, increment refreshTrigger to re-fetch
   const handleWorkoutSave = () => {
     setEditingWorkout(null);
-    setRefreshTrigger((prev) => prev + 1); 
   };
 
   return (
-    <div className="home-container">
-      {/* Title and Sign Out Button */}
-      <header className="home-header">
-      <h1 className="main-title">GD Fitness Tracker</h1>
-      <button onClick={onLogout} className="sign-out-btn">Sign Out</button>
-    </header>
+    <div className="app-shell">
+      <TopBar title="GD Fitness Tracker" onSignOut={onLogout} />
 
-
-      {/* Tab Navigation */}
-      <div className="tabs">
-        <button
-          className={`tab-btn ${activeTab === "uploadWorkout" ? "active" : ""}`}
-          onClick={() => setActiveTab("uploadWorkout")}
-        >
-          Upload Workout
-        </button>
-        <button
-          className={`tab-btn ${activeTab === "viewWorkouts" ? "active" : ""}`}
-          onClick={() => setActiveTab("viewWorkouts")}
-        >
-          View Workouts
-        </button>
-        <button
-          className={`tab-btn ${activeTab === "analytics" ? "active" : ""}`}
-          onClick={() => setActiveTab("analytics")}
-        >
-          Analytics
-        </button>
-      </div>
-
-      {/* Tab Content */}
-      <div className="tab-content">
+      <main className="app-main">
         {activeTab === "uploadWorkout" && (
           <UploadWorkout
             onWorkoutSave={handleWorkoutSave}
             editingWorkout={editingWorkout}
-            workouts={workouts}
           />
         )}
         {activeTab === "viewWorkouts" && (
-          loadingWorkouts ? (
-            <p className="loading-msg">Loading workouts...</p>
+          isLoading ? (
+            <p className="loading-msg">Loading workouts…</p>
+          ) : isError ? (
+            <ErrorState message={errorMessage(error)} onRetry={refetch} retrying={isFetching} />
           ) : (
             <GetWorkouts
               workouts={workouts}
               onEditWorkout={handleEditWorkout}
-              onDeleteSuccess={() => setRefreshTrigger((prev) => prev + 1)}
+              onEmptyAction={() => setActiveTab("uploadWorkout")}
             />
           )
         )}
         {activeTab === "analytics" && (
-          loadingWorkouts ? (
-            <p className="loading-msg">Loading workouts...</p>
+          isLoading ? (
+            <p className="loading-msg">Loading workouts…</p>
+          ) : isError ? (
+            <ErrorState message={errorMessage(error)} onRetry={refetch} retrying={isFetching} />
           ) : (
             <WorkoutAnalytics workouts={workouts} />
           )
         )}
-      </div>
+      </main>
 
+      <BottomNav items={TABS} activeKey={activeTab} onChange={setActiveTab} />
     </div>
   );
 };
